@@ -1,0 +1,105 @@
+/**
+ * Design tokens.
+ *
+ * Every colour, size and radius in the application resolves to a variable here,
+ * so the whole look can be retuned without touching a single component. The
+ * semantic names (success/warning/error) are what the UI design document
+ * specifies, and status colours are always paired with text rather than used
+ * alone, so meaning never depends on colour perception.
+ */
+
+:root {
+  /* ---- Semantic colours ---- */
+  --color-primary: #4338ca;
+  --color-primary-hover: #3730a3;
+  --color-primary-soft: #eef2ff;
+  --color-primary-border: #c7d2fe;
+
+  --color-secondary: #0f766e;
+  --color-secondary-hover: #115e59;
+
+  --color-success: #15803d;
+  --color-success-soft: #dcfce7;
+  --color-success-border: #86efac;
+
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-warning-border: #fcd34d;
+
+  --color-error: #b91c1c;
+  --color-error-soft: #fee2e2;
+  --color-error-border: #fca5a5;
+
+  --color-info: #1d4ed8;
+  --color-info-soft: #dbeafe;
+  --color-info-border: #93c5fd;
+
+  /* ---- Neutrals ---- */
+  --color-text: #111827;
+  --color-text-muted: #4b5563;
+  --color-text-subtle: #6b7280;
+  --color-text-inverse: #ffffff;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #f9fafb;
+  --color-background: #f3f4f6;
+  --color-border: #d1d5db;
+  --color-border-strong: #9ca3af;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ---- Typography ---- */
+  --font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", "SFMono-Regular", Menlo, monospace;
+
+  --font-size-h1: 2rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h3: 1.125rem;
+  --font-size-body: 1rem;
+  --font-size-caption: 0.8125rem;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.55;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ---- Radius ---- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ---- Elevation ---- */
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
+  --shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
+  --shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.14);
+
+  /* ---- Layout ---- */
+  --sidebar-width: 232px;
+  --navbar-height: 60px;
+  --bottom-nav-height: 60px;
+  --content-max-width: 1180px;
+
+  /* ---- Focus ring ---- */
+  --focus-ring: 0 0 0 3px rgba(67, 56, 202, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0s;
+  }
+}
+
+:root {
+  --motion-duration: 150ms;
+}

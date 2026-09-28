@@ -1,0 +1,260 @@
+/* Application shell: navbar, sidebar, bottom navigation. */
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Navbar ---- */
+
+.navbar {
+  height: var(--navbar-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.navbar-inner {
+  max-width: var(--content-max-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-bold);
+  font-size: 1.0625rem;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1 1 auto;
+  overflow-x: auto;
+}
+
+.navbar-link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.navbar-link:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.navbar-link.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The user chip shows who is signed in at a glance. */
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  max-width: 220px;
+}
+
+.user-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+/* ---- Layout with sidebar ---- */
+
+.layout-body {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex: 0 0 var(--sidebar-width);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-5));
+}
+
+.sidebar-heading {
+  font-size: var(--font-size-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  padding: var(--space-2) var(--space-3);
+}
+
+.sidebar-link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: 2px;
+}
+
+.sidebar-link:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.sidebar-link.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.page-header {
+  margin-bottom: var(--space-5);
+}
+
+.page-header h1 {
+  margin-bottom: var(--space-2);
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ---- Mobile navigation ---- */
+
+.bottom-nav {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.bottom-nav-inner {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.bottom-nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  font-size: 0.6875rem;
+  color: var(--color-text-subtle);
+  min-height: var(--bottom-nav-height);
+}
+
+.bottom-nav-link:hover {
+  text-decoration: none;
+}
+
+.bottom-nav-link.active {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.bottom-nav-icon {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+/* ---- Responsive: tablet ---- */
+
+@media (max-width: 960px) {
+  .layout-body {
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .sidebar {
+    width: 190px;
+    flex-basis: 190px;
+  }
+}
+
+/* ---- Responsive: mobile ---- */
+
+@media (max-width: 720px) {
+  :root {
+    --font-size-h1: 1.5rem;
+    --font-size-h2: 1.25rem;
+  }
+
+  .navbar-inner {
+    padding: 0 var(--space-3);
+  }
+
+  /* Desktop nav collapses; the bottom bar takes over. */
+  .navbar-links,
+  .sidebar {
+    display: none;
+  }
+
+  .bottom-nav {
+    display: block;
+  }
+
+  .layout-body {
+    flex-direction: column;
+    padding: var(--space-4) var(--space-3);
+    /* Leave room for the sticky bottom bar. */
+    padding-bottom: var(--space-4);
+  }
+
+  .user-chip-name {
+    display: none;
+  }
+
+  .grid-cards {
+    grid-template-columns: 1fr;
+  }
+}
