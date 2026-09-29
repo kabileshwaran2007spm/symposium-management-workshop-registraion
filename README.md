@@ -138,8 +138,35 @@ frontend/
     utils/           formatting, validation, useAsync data hook
 ```
 
+## Scope: implemented vs. deferred
+
+This build covers the complete MVP described in `plan/`. The items below are
+specified in the planning documents as future phases and are **not** part of the
+current system — they are listed so the docs and the code agree:
+
+| Feature | Status |
+|---------|--------|
+| Notifications (registration, approval, reminders) | Deferred — `plan/implementation.md` §41 |
+| Feedback collection and viewing | Deferred — PRD §6 |
+| Certificates | Deferred — `plan/implementation.md` §41 |
+| Audit logs | Deferred — `plan/implementation.md` §42 |
+| Waitlist auto-promotion | Partial — `WAITLISTED` status and analytics exist; when an event is full, registration returns 409 rather than queueing |
+| Club management (create/edit clubs) | Read-only — the admin club directory lists seeded clubs |
+
+Everything else in the planning documents — authentication, roles, event lifecycle,
+registration, QR attendance, exports, analytics and the admin console — is
+implemented and covered by the test suite.
+
 ## Verification
 
-- Backend: `./mvnw -B test` — 95 tests, all passing
-- API: 66-check end-to-end smoke script (auth, concurrency, permissions, transitions, exports, QR check-in)
-- Frontend: `npm run build` (Vite production build) and manual browser E2E across all three roles
+- Backend: `./mvnw -B test` — **100 tests**, all passing
+  - Unit: Auth 7, Registration 19, Event 21, Attendance 9, Admin 8, Jwt 8, Csv 8
+  - Integration: `ApiAuthorizationIntegrationTest` 14 (role matrix, 401/403 boundaries,
+    password-hash non-disclosure) and `EventLifecycleIntegrationTest` 5 (the full
+    documented flow: create → hidden → approve → public → register → duplicate 409 →
+    cancel → seat release → re-register → full 409 → stale-QR refused → check-in →
+    analytics; plus rejection, resubmission, CSV export and envelope contracts)
+- API: 66-check end-to-end smoke script (auth, concurrency, permissions, transitions,
+  exports, QR check-in)
+- Frontend: `npm run build` (Vite production build) and manual browser E2E across all
+  three roles
