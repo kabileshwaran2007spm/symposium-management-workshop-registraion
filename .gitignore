@@ -29,3 +29,6 @@ npm-debug.log*
 
 # ---- Freebuff workspace metadata ----
 .freebuff/
+
+# ---- Local dev secrets (generated, never committed) ----
+scripts/.dev-secrets

@@ -38,8 +38,13 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    private final AuthenticationRateLimitFilter authenticationRateLimitFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            AuthenticationRateLimitFilter authenticationRateLimitFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authenticationRateLimitFilter = authenticationRateLimitFilter;
     }
 
     @Bean
@@ -92,6 +97,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((request, response, ex) ->
                                 writeError(response, HttpStatus.FORBIDDEN,
                                         "You do not have permission to perform this action")))
+                .addFilterBefore(authenticationRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

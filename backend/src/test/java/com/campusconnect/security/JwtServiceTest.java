@@ -30,7 +30,7 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("a token round-trips and carries the id, role and profile claims")
+    @DisplayName("a token round-trips and carries the identity claims")
     void tokenRoundTrips() {
         JwtService jwtService = service();
 
@@ -39,10 +39,31 @@ class JwtServiceTest {
 
         assertThat(decoded.getSubject()).isEqualTo("user-1");
         assertThat(decoded.getClaimAsString("role")).isEqualTo("STUDENT");
-        assertThat(decoded.getClaimAsString("name")).isEqualTo("Arun Kumar");
-        assertThat(decoded.getClaimAsString("email")).isEqualTo("arun@example.com");
         assertThat(decoded.getIssuer().toString()).isEqualTo(ISSUER);
         assertThat(decoded.getExpiresAt()).isAfter(decoded.getIssuedAt());
+    }
+
+    @Test
+    @DisplayName("tokens carry no profile data, so a leak exposes the minimum")
+    void tokenCarriesNoProfileClaims() {
+        User richer = user();
+        richer.setEmail("arun@example.com");
+
+        String token = service().generateToken(richer);
+        Jwt decoded = service().decode(token);
+
+        assertThat(decoded.getClaimAsString("name")).isNull();
+        assertThat(decoded.getClaimAsString("email")).isNull();
+        assertThat(decoded.getClaims()).containsOnlyKeys("sub", "role", "iss", "iat", "exp");
+    }
+
+    @Test
+    @DisplayName("a token from a different issuer is rejected even when signed with the same secret")
+    void foreignIssuerIsRejected() {
+        String foreignToken = new JwtService(SECRET, "https://evil.example", 60).generateToken(user());
+
+        assertThatThrownBy(() -> service().decode(foreignToken))
+                .isInstanceOf(JwtException.class);
     }
 
     @Test

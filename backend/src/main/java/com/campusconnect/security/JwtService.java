@@ -40,8 +40,6 @@ public class JwtService {
     private static final int MIN_SECRET_BYTES = 32;
 
     private static final String CLAIM_ROLE = "role";
-    private static final String CLAIM_NAME = "name";
-    private static final String CLAIM_EMAIL = "email";
 
     private final JwtEncoder encoder;
     private final JwtDecoder decoder;
@@ -68,6 +66,9 @@ public class JwtService {
 
         SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA256");
         this.encoder = new NimbusJwtEncoder(new ImmutableSecret<>(key));
+        // Signature and expiry are verified here. Issuer is pinned separately in
+        // decode(), because the secret-key decoder builder does not expose an
+        // issuer validator directly.
         this.decoder = NimbusJwtDecoder.withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
@@ -77,14 +78,16 @@ public class JwtService {
 
     public String generateToken(User user) {
         Instant now = Instant.now();
+        // Claims are limited to identity and authorization. Profile fields such as
+        // name and email deliberately stay out of the token: they are available
+        // from the database, and carrying them only widens what a leaked token
+        // exposes. The login response already carries the profile the UI needs.
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plus(expiry))
                 .subject(user.getId())
                 .claim(CLAIM_ROLE, user.getRole().name())
-                .claim(CLAIM_NAME, user.getName())
-                .claim(CLAIM_EMAIL, user.getEmail())
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
@@ -92,13 +95,23 @@ public class JwtService {
     }
 
     /**
-     * Verifies signature and expiry.
+     * Verifies signature, expiry and issuer.
+     *
+     * <p>The issuer check is explicit: a token signed with the correct secret but
+     * minted by a different issuer (for example a misconfigured sibling environment
+     * sharing the signing key) is rejected rather than trusted.
      *
      * @throws org.springframework.security.oauth2.jwt.JwtException when the token
-     *         is invalid or expired; callers treat that as unauthenticated.
+     *         is invalid, expired, or from an untrusted issuer; callers treat that
+     *         as unauthenticated.
      */
     public Jwt decode(String token) {
-        return decoder.decode(token);
+        Jwt jwt = decoder.decode(token);
+
+        if (jwt.getIssuer() == null || !issuer.equals(jwt.getIssuer().toString())) {
+            throw new org.springframework.security.oauth2.jwt.BadJwtException("Untrusted token issuer");
+        }
+        return jwt;
     }
 
     public long getExpirySeconds() {
