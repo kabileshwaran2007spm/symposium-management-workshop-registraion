@@ -1,20 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import AuthContext from './authContext';
 import { sessionStore, setUnauthorizedHandler } from '../services/api';
 import { authService } from '../services/authService';
-
-const AuthContext = createContext(null);
-
-/** Where each role lands after signing in. */
-export const HOME_PATH_BY_ROLE = {
-  STUDENT: '/dashboard',
-  ORGANIZER: '/organizer',
-  ADMIN: '/admin',
-};
-
-export function homePathFor(role) {
-  return HOME_PATH_BY_ROLE[role] || '/events';
-}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => sessionStore.load());
@@ -80,13 +68,3 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used inside an AuthProvider');
-  }
-  return context;
-}
-
-export default AuthContext;

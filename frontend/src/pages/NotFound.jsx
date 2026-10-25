@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 
 import Button from '../components/Button';
-import { useAuth } from '../context/AuthContext';
+import { homePathFor } from '../context/authPaths';
+import { useAuth } from '../context/useAuth';
 
 /**
  * 404 screen.

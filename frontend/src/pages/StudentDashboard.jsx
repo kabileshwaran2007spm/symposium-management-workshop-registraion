@@ -7,7 +7,7 @@ import ErrorState from '../components/ErrorState';
 import EventCard from '../components/EventCard';
 import { RegistrationStatusBadge } from '../components/Badge';
 import { SkeletonGrid } from '../components/SkeletonCard';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import { formatDate } from '../utils/format';
@@ -33,6 +33,8 @@ function greeting() {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [category, setCategory] = useState('');
+  const [greetingText] = useState(greeting);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   const eventsState = useAsync(
     () => eventService.list({ category, size: 6, page: 0 }),
@@ -42,11 +44,10 @@ export default function StudentDashboard() {
   const registrationsState = useAsync(() => registrationService.myRegistrations(), []);
 
   const upcoming = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
     return (registrationsState.data ?? [])
       .filter((item) => item.status !== 'CANCELLED' && item.eventDate >= today)
       .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
-  }, [registrationsState.data]);
+  }, [registrationsState.data, today]);
 
   const events = eventsState.data?.content ?? [];
 
@@ -54,7 +55,7 @@ export default function StudentDashboard() {
     <>
       <div className="page-header">
         <h1>
-          {greeting()}, {user?.name?.split(' ')[0] || 'Student'} 👋
+          {greetingText}, {user?.name?.split(' ')[0] || 'Student'} 👋
         </h1>
         <p className="page-subtitle">Find your next learning experience.</p>
       </div>

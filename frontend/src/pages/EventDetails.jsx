@@ -8,8 +8,8 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Modal from '../components/Modal';
 import SeatAvailability from '../components/SeatAvailability';
 import { CategoryBadge, EventStatusBadge, RegistrationStatusBadge } from '../components/Badge';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../context/useToast';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import { formatDateLong, formatTimeRange } from '../utils/format';
@@ -32,6 +32,7 @@ export default function EventDetails() {
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   const eventState = useAsync(() => eventService.getById(id), [id]);
 
@@ -107,7 +108,7 @@ export default function EventDetails() {
   const registrationClosed = (() => {
     if (event.status !== 'APPROVED') return 'This event is not open for registration.';
     if (event.full) return 'This event is full.';
-    if (event.registrationDeadline < new Date().toISOString().slice(0, 10)) {
+    if (event.registrationDeadline < today) {
       return `Registration closed on ${formatDateLong(event.registrationDeadline)}.`;
     }
     return null;

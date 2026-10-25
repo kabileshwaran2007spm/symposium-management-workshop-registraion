@@ -1,7 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 
 import ErrorState from '../../components/ErrorState';
-import LoadingSpinner from '../../components/LoadingSpinner';
 import { SkeletonGrid } from '../../components/SkeletonCard';
 import { organizerService } from '../../services/organizerService';
 import useAsync from '../../utils/useAsync';

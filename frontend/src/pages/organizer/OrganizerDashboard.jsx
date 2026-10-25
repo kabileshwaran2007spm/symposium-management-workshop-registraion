@@ -10,7 +10,7 @@ import Pagination from '../../components/Pagination';
 import SearchBar from '../../components/SearchBar';
 import Select from '../../components/Select';
 import { CategoryBadge, EventStatusBadge } from '../../components/Badge';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { eventService } from '../../services/eventService';
 import { organizerService } from '../../services/organizerService';
 import { categoryLabel, formatDate, formatTimeRange } from '../../utils/format';

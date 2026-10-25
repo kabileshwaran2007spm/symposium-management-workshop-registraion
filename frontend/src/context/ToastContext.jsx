@@ -1,8 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { ToastViewport } from '../components/Toast';
-
-const ToastContext = createContext(null);
+import ToastContext from './toastContext';
 
 const DEFAULT_DURATION_MS = 4500;
 
@@ -53,13 +52,3 @@ export function ToastProvider({ children }) {
     </ToastContext.Provider>
   );
 }
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used inside a ToastProvider');
-  }
-  return context;
-}
-
-export default ToastContext;

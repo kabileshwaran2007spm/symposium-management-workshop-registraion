@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import Button from '../../components/Button';
@@ -7,7 +7,7 @@ import Input from '../../components/Input';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Select from '../../components/Select';
 import { EventStatusBadge } from '../../components/Badge';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { eventService } from '../../services/eventService';
 import { categoryLabel } from '../../utils/format';
 import { isValid, validateEvent } from '../../utils/validation';
@@ -26,6 +26,21 @@ const DEPARTMENT_OPTIONS = ['CSE', 'IT', 'ECE', 'EEE', 'MECH', 'CIVIL', 'AIML', 
   (value) => ({ value, label: value }),
 );
 
+function toFormValues(event) {
+  return {
+    title: event.title,
+    description: event.description,
+    category: event.category,
+    department: event.department,
+    date: event.date,
+    startTime: (event.startTime || '').slice(0, 5),
+    endTime: (event.endTime || '').slice(0, 5),
+    venue: event.venue,
+    capacity: String(event.capacity),
+    registrationDeadline: event.registrationDeadline,
+  };
+}
+
 /**
  * Edit event.
  *
@@ -39,40 +54,28 @@ export default function EditEvent() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const [values, setValues] = useState(null);
+  const [draft, setDraft] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [loadError, setLoadError] = useState(null);
 
   const { data: event, loading, error, reload } = useAsync(
     () => eventService.getById(id),
     [id],
   );
-
-  useEffect(() => {
-    if (event) {
-      setValues({
-        title: event.title,
-        description: event.description,
-        category: event.category,
-        department: event.department,
-        date: event.date,
-        startTime: (event.startTime || '').slice(0, 5),
-        endTime: (event.endTime || '').slice(0, 5),
-        venue: event.venue,
-        capacity: String(event.capacity),
-        registrationDeadline: event.registrationDeadline,
-      });
-    }
-  }, [event]);
-
-  useEffect(() => {
-    if (error) setLoadError(error);
-  }, [error]);
+  const values = event
+    ? draft?.eventId === id
+      ? draft.values
+      : toFormValues(event)
+    : null;
+  const loadError = error;
 
   const set = (field) => (changeEvent) => {
     const value = changeEvent.target.value;
-    setValues((current) => ({ ...current, [field]: value }));
+    setDraft((current) => {
+      const currentValues =
+        current?.eventId === id ? current.values : toFormValues(event);
+      return { eventId: id, values: { ...currentValues, [field]: value } };
+    });
     setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 

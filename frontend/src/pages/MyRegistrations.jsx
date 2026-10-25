@@ -7,7 +7,7 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { CategoryBadge, RegistrationStatusBadge } from '../components/Badge';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { registrationService } from '../services/registrationService';
 import { formatDate, formatTimeRange } from '../utils/format';
 import useAsync from '../utils/useAsync';
@@ -25,6 +25,7 @@ export default function MyRegistrations() {
   const [tab, setTab] = useState('upcoming');
   const [pendingCancel, setPendingCancel] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   const { data, loading, error, reload } = useAsync(
     () => registrationService.myRegistrations(),
@@ -32,7 +33,6 @@ export default function MyRegistrations() {
   );
 
   const grouped = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
     const all = data ?? [];
 
     return {
@@ -40,7 +40,7 @@ export default function MyRegistrations() {
       completed: all.filter((item) => item.status !== 'CANCELLED' && item.eventDate < today),
       cancelled: all.filter((item) => item.status === 'CANCELLED'),
     };
-  }, [data]);
+  }, [data, today]);
 
   const handleCancel = async () => {
     if (!pendingCancel) return;

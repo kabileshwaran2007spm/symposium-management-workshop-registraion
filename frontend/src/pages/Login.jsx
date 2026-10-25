@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { useAuth, homePathFor } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { homePathFor } from '../context/authPaths';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../context/useToast';
 import { isValid, validateLogin } from '../utils/validation';
 
 export default function Login() {

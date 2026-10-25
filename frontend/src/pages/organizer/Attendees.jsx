@@ -8,7 +8,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import Pagination from '../../components/Pagination';
 import SearchBar from '../../components/SearchBar';
 import { RegistrationStatusBadge } from '../../components/Badge';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { organizerService } from '../../services/organizerService';
 import { formatDateTime } from '../../utils/format';
 import useAsync from '../../utils/useAsync';

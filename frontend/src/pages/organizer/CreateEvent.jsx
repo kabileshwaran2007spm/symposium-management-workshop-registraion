@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Select from '../../components/Select';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { eventService } from '../../services/eventService';
 import { todayIso } from '../../utils/format';
 import { isValid, validateEvent } from '../../utils/validation';

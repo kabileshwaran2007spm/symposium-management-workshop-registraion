@@ -7,7 +7,7 @@ import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCode from '../components/QRCode';
 import { RegistrationStatusBadge } from '../components/Badge';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { registrationService } from '../services/registrationService';
 import { formatDateLong, formatTimeRange } from '../utils/format';
 import useAsync from '../utils/useAsync';

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { authService } from '../services/authService';
 import { isValid, validateRegister } from '../utils/validation';
 

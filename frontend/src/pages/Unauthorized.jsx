@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import Button from '../components/Button';
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { homePathFor } from '../context/authPaths';
+import { useAuth } from '../context/useAuth';
 
 /**
  * Shown when a signed-in user reaches a screen their role cannot use.

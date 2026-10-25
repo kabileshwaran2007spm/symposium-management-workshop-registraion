@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import ErrorState from '../../components/ErrorState';
 import Input from '../../components/Input';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { attendanceService } from '../../services/attendanceService';
 import { organizerService } from '../../services/organizerService';
 import { formatDateTime } from '../../utils/format';

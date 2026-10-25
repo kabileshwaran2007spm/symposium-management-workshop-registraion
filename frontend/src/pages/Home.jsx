@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import Button from '../components/Button';
@@ -5,7 +6,8 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import EventCard from '../components/EventCard';
 import { SkeletonGrid } from '../components/SkeletonCard';
-import { useAuth, homePathFor } from '../context/AuthContext';
+import { homePathFor } from '../context/authPaths';
+import { useAuth } from '../context/useAuth';
 import { eventService } from '../services/eventService';
 import { formatDate } from '../utils/format';
 import useAsync from '../utils/useAsync';
@@ -19,6 +21,7 @@ import useAsync from '../utils/useAsync';
 export default function Home() {
   const { isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   const { data, loading, error, reload } = useAsync(
     () => eventService.list({ size: 3, page: 0 }),
@@ -136,7 +139,7 @@ export default function Home() {
         </section>
 
         <p className="text-caption" style={{ marginTop: 'var(--space-6)' }}>
-          Today is {formatDate(new Date().toISOString().slice(0, 10))}.
+          Today is {formatDate(today)}.
         </p>
       </div>
     </>

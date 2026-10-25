@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { homePathFor } from '../context/authPaths';
+import { useAuth } from '../context/useAuth';
 
 /**
  * Requires any signed-in user, remembering where they were headed so they land

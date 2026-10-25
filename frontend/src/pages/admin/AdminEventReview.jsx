@@ -6,7 +6,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import ErrorState from '../../components/ErrorState';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { CategoryBadge, EventStatusBadge } from '../../components/Badge';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { adminService } from '../../services/adminService';
 import { eventService } from '../../services/eventService';
 import { formatDateLong, formatTimeRange } from '../../utils/format';

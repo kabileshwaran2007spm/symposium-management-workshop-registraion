@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import Button from './Button';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { roleLabel } from '../utils/format';
 
 /** Navigation links for each role, mirroring the navigation structure in the design. */
