@@ -9,9 +9,9 @@ and administrators oversee the whole platform.
 | Layer     | Technology                                             |
 |-----------|--------------------------------------------------------|
 | Frontend  | React 19, Vite 8, React Router 7, Axios, qrcode.react  |
-| Backend   | Spring Boot 4.1.1 (Java 17), Spring Security, JOSE JWT |
+| Backend   | Spring Boot 4.1.2 (Java 25), Spring Security, JOSE JWT |
 | Database  | MongoDB 9 (Spring Data MongoDB)                        |
-| Build     | Maven Wrapper (`mvnw`), Vite                           |
+| Build     | Maven 3.9.16 via Maven Wrapper, Node.js 24 LTS, Vite 8  |
 
 ## Features
 
@@ -47,8 +47,8 @@ and administrators oversee the whole platform.
 ## Quick start
 
 ### Prerequisites
-- Java 17 (JDK)
-- Node.js 18+
+- Java 25 (JDK)
+- Node.js 24 LTS (npm 11 or newer)
 - MongoDB 9 running on `localhost:27017`
 
 ### 1. Database
@@ -57,35 +57,50 @@ Ensure MongoDB is running. The `campusconnect` database is created automatically
 
 ### 2. Backend
 
-```bash
-cd backend
-export JAVA_HOME="/path/to/jdk-17"    # Windows (Git Bash): /c/Program Files/Java/jdk-17
-./mvnw -B test                        # run the 95-test suite
-./mvnw -B package -DskipTests         # build the jar
+```powershell
+Set-Location backend
+$env:JAVA_HOME = 'C:\Program Files\Eclipse Adoptium\jdk-25.0.4.101-hotspot'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 
-JWT_SECRET="a-long-random-secret-at-least-32-chars" \
-APP_SEED_ENABLED=true \
-APP_SEED_PASSWORD=Campus@123 \
-java -jar target/campusconnect-0.0.1-SNAPSHOT.jar
+# Create an unpredictable HS256 secret for this PowerShell session; never print or commit it.
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+  $rng.GetBytes($bytes)
+  $env:JWT_SECRET = [Convert]::ToBase64String($bytes)
+} finally {
+  $rng.Dispose()
+}
+
+.\mvnw.cmd -B test
+.\mvnw.cmd spring-boot:run
 ```
 
 The API listens on `http://localhost:8080`. See `backend/.env.example` for all
-environment variables (Mongo URI, CORS origins, seed toggle, JWT secret).
+environment variable names. Spring Boot does not load `.env` files automatically;
+set variables in the PowerShell session that starts the backend. MongoDB defaults
+to `127.0.0.1:27017/campusconnect`. Seeding is disabled by default to preserve
+existing data; to seed an empty database, set `APP_SEED_ENABLED=true` and choose a
+private `APP_SEED_PASSWORD` of at least 8 characters in that session.
 
 ### 3. Frontend
 
-```bash
-cd frontend
-npm install
-cp .env.example .env.local            # adjust VITE_API_BASE_URL if needed
-npm run dev
+```powershell
+Set-Location frontend
+if ($env:NODE_HOME) { $env:PATH = "$env:NODE_HOME;$env:PATH" }
+npm.cmd install
+npm.cmd run dev
 ```
 
 Open `http://localhost:5173`.
 
-### 4. Demo accounts
+### 4. Optional demo data
 
-Seeded automatically when the user collection is empty (password for all: `Campus@123`):
+Seeding is disabled by default. To seed an empty database, set
+`APP_SEED_ENABLED=true` and provide a private `APP_SEED_PASSWORD` in the same
+PowerShell session before starting the backend. Seeding is skipped when any user
+already exists, so it does not overwrite existing data. The seeded accounts use
+that locally configured password:
 
 | Role      | Email                          |
 |-----------|--------------------------------|
@@ -124,7 +139,7 @@ backend/
     repository/      Spring Data repositories (custom @Query where needed)
     security/        JWT filter/service, SecurityConfig, SecurityUtils
     service/         business logic (seat claiming, state machine, CSV)
-  src/test/          95 unit + integration tests
+  src/test/          102 unit + integration tests
 frontend/
   src/
     components/      design-system widgets (Button, DataTable, Modal, badges…)
@@ -159,8 +174,8 @@ implemented and covered by the test suite.
 
 ## Verification
 
-- Backend: `./mvnw -B test` — **100 tests**, all passing
-  - Unit: Auth 7, Registration 19, Event 21, Attendance 9, Admin 8, Jwt 8, Csv 8
+- Backend: `./mvnw -B test` — **102 tests**, all passing
+  - Unit: Auth 7, Registration 19, Event 21, Attendance 9, Admin 8, Jwt 10, Csv 8
   - Integration: `ApiAuthorizationIntegrationTest` 14 (role matrix, 401/403 boundaries,
     password-hash non-disclosure) and `EventLifecycleIntegrationTest` 5 (the full
     documented flow: create → hidden → approve → public → register → duplicate 409 →

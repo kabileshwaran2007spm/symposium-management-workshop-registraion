@@ -1,0 +1,67 @@
+# CampusConnect - Package Inventory File
+# Generated: October 25, 2026
+# Frontend npm packages (from package.json + npm list)
+
+## npm Packages (Frontend - React 19 + Vite 8)
+
+### Core Libraries
+react@19.3.1 - UI library
+react-dom@19.3.1 - DOM rendering
+react-router-dom@7.18.4 - Routing (v7.18.4)
+
+### Vite & Build Tools
+vite@8.3.5 - Build/dev server (v8)
+@vitejs/plugin-react@6.1.2 - React plugin for Vite
+
+### Development & Linting
+@types/react@19.3.0 - TypeScript types for React
+@types/react-dom@19.3.0 - TypeScript types for React DOM
+oxlint@1.89.0 - Rust-based linter (replaces eslint)
+
+### UI & Utilities
+axios@1.20.0 - HTTP client for API calls
+qrcode.react@4.2.0 - QR code component (QRCodeSVG, marginSize)
+
+## Maven Dependencies (Backend - Spring Boot 4.1.2 + Java 25)
+
+### Spring Boot Starter Parent
+spring-boot-starter-parent@4.1.2 - BOM for version management
+
+### Web & MVC
+spring-boot-starter-webmvc - Spring MVC + REST controllers
+(no explicit version - managed by Spring Boot 4.1.2 BOM)
+
+### Data & Persistence
+spring-boot-starter-data-mongodb - Spring Data MongoDB 5.1.2
+spring-boot-starter-validation - Bean Validation (Jakarta Bean Validation)
+
+### Security & OAuth2
+spring-boot-starter-security - Spring Security core
+spring-security-oauth2-jose - JOSE JWT support (HS256, Nimbus)
+spring-security-test - Test support for Spring Security
+
+### Testing
+spring-boot-starter-test - JUnit Jupiter, Mockito, Hamcrest, etc.
+(org.springframework.boot:spring-boot-starter-test pulling in:
+  junit-jupiter, mockito-core, hamcrest, jsonassert, mockito-junit-jupiter)
+org.springframework.security:spring-security-test - Security test matchers
+
+### MongoDB Driver (transitive via spring-boot-starter-data-mongodb)
+org.mongodb:mongodb-driver-sync@5.8.1 - MongoDB sync driver
+
+## Build Tools
+Maven Wrapper
+- mvnw (v3.9.16), mvnw.cmd - Maven Wrapper 3.3.4
+- pom.xml - Project Object Model
+
+## Runtime Environment
+Java 25 (JDK) - Backend compilation and runtime target
+Node.js 24 (LTS) - For frontend dev/build (v24.22.1)
+npm 12.2.1 - Frontend package manager
+MongoDB 9 - Running on localhost:27017
+
+## Dependency Summary
+- Direct npm dependencies: 5 runtime + 5 development
+- Total Maven BOM/starter dependencies: 8 core starters + test deps
+- Build: Maven Wrapper + Vite
+- Runtime: Java 25 + Spring Boot 4.1.2 + MongoDB 9
