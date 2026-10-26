@@ -102,12 +102,20 @@ function toAppError(error) {
   const { response } = error;
 
   if (!response) {
-    const message = error.code === 'ECONNABORTED'
-      ? 'The server request timed out. Please try again.'
-      : 'Could not reach the API. Check your connection and try again.';
+    const timedOut = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+    const message = timedOut
+      ? 'The API request timed out. Please try again.'
+      : 'The browser received no response from the API. Check your connection and API availability; browser CORS, DNS, or TLS restrictions may also block the request.';
+    if (import.meta.env.DEV) {
+      console.warn('CampusConnect API network failure', {
+        method: error.config?.method?.toUpperCase(),
+        path: error.config?.url,
+        code: error.code,
+      });
+    }
     const appError = new Error(message);
     appError.status = 0;
-    appError.kind = 'network';
+    appError.kind = timedOut ? 'timeout' : 'network';
     appError.code = error.code;
     return appError;
   }
@@ -116,11 +124,12 @@ function toAppError(error) {
   let message = body?.message;
 
   if (!message) {
-    if (response.status === 401) message = 'Your session has expired. Please log in again.';
+    if (response.status === 400) message = 'The request contains invalid information. Check your input and try again.';
+    else if (response.status === 401) message = 'Authentication failed. Check your credentials or log in again.';
     else if (response.status === 403) message = 'You do not have permission to do that.';
     else if (response.status === 404) message = 'The requested item could not be found.';
     else if (response.status === 409) message = 'That action conflicts with the current state.';
-    else if (response.status >= 500) message = 'Something went wrong on the server.';
+    else if (response.status >= 500) message = 'The server could not complete the request. Please try again later.';
     else message = 'The request could not be completed.';
   }
 
@@ -153,10 +162,34 @@ export async function request(config) {
   const response = await http.request(config);
   const body = response.data;
 
-  // A non-enveloped body (or a 204) is passed through unchanged.
-  if (body === null || body === undefined || typeof body !== 'object' || !('data' in body)) {
-    return body;
+  if (response.status === 204) {
+    return null;
   }
+
+  const isApiEnvelope = body !== null
+    && typeof body === 'object'
+    && typeof body.success === 'boolean'
+    && Object.prototype.hasOwnProperty.call(body, 'data')
+    && typeof body.message === 'string';
+  if (!isApiEnvelope || !body.success) {
+    if (import.meta.env.DEV) {
+      console.error('CampusConnect API returned an invalid response format', {
+        method: config.method?.toUpperCase(),
+        path: config.url,
+        status: response.status,
+        contentType: response.headers['content-type'],
+      });
+    }
+    const appError = new Error(
+      isApiEnvelope && body.message
+        ? body.message
+        : 'The server returned an unexpected response. Please try again later.',
+    );
+    appError.status = response.status;
+    appError.kind = 'response';
+    throw appError;
+  }
+
   return body.data;
 }
 
