@@ -11,7 +11,31 @@ import axios from 'axios';
 
 const SESSION_KEY = 'campusconnect.session';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const DEFAULT_API_BASE_URL = 'https://symposium-management-workshop-registraion.onrender.com/api';
+const LOCAL_API_BASE_URL = 'http://localhost:8080/api';
+
+function resolveApiBaseUrl(configuredUrl) {
+  const fallbackUrl = import.meta.env.PROD ? DEFAULT_API_BASE_URL : LOCAL_API_BASE_URL;
+  let candidate = configuredUrl?.trim() || fallbackUrl;
+
+  if (import.meta.env.PROD) {
+    const isAbsoluteHttpUrl = /^https?:\/\//i.test(candidate);
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(?:\/|$)/i.test(candidate);
+    if (!isAbsoluteHttpUrl || isLocalhost) {
+      candidate = DEFAULT_API_BASE_URL;
+    }
+  }
+
+  const url = new URL(candidate, window.location.origin);
+  const basePath = url.pathname.replace(/\/+$/, '');
+  if (!basePath.endsWith('/api')) {
+    url.pathname = `${basePath}/api`;
+  }
+
+  return `${url.origin}${url.pathname.replace(/\/+$/, '')}`;
+}
+
+const BASE_URL = resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 /**
  * Session persistence. Kept separate from the auth context so this module has no
@@ -78,10 +102,13 @@ function toAppError(error) {
   const { response } = error;
 
   if (!response) {
-    const appError = new Error(
-      'Unable to reach the server. Please check that the backend is running.',
-    );
+    const message = error.code === 'ECONNABORTED'
+      ? 'The server request timed out. Please try again.'
+      : 'Could not contact the API. Check your network connection and the backend CORS configuration.';
+    const appError = new Error(message);
     appError.status = 0;
+    appError.kind = 'network';
+    appError.code = error.code;
     return appError;
   }
 
@@ -99,6 +126,7 @@ function toAppError(error) {
 
   const appError = new Error(message);
   appError.status = response.status;
+  appError.kind = 'http';
   return appError;
 }
 

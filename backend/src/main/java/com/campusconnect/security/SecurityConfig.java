@@ -1,5 +1,6 @@
 package com.campusconnect.security;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,6 +36,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final String PRODUCTION_FRONTEND_ORIGIN =
+            "https://symposium-management-workshop-registraion-lol3-94n7acls4.vercel.app";
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -130,10 +134,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(
             @Value("${app.cors.allowed-origins:http://localhost:5173}") String allowedOrigins) {
 
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
+        List<String> origins = new ArrayList<>(Arrays.stream(allowedOrigins.split(","))
+                .map(origin -> origin.trim())
                 .filter(origin -> !origin.isEmpty())
-                .toList();
+                .toList());
+        if (!origins.contains(PRODUCTION_FRONTEND_ORIGIN)) {
+            origins.add(PRODUCTION_FRONTEND_ORIGIN);
+        }
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
