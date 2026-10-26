@@ -1,6 +1,6 @@
 # CampusConnect feature and deployment audit
 
-**Audit date:** 2026-10-26  
+**Audit date:** 2026-10-26
 **Scope:** Frontend routes and user-facing feature surfaces, API coverage, security/data integrity, local quality checks, and the supplied production URLs.
 
 ## Summary
