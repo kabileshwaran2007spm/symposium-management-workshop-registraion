@@ -51,6 +51,7 @@ public class AuthenticationRateLimitFilter extends OncePerRequestFilter {
         return !(HttpMethod.POST.matches(request.getMethod())
                 && ("/api/auth/login".equals(request.getServletPath())
                         || "/api/auth/register".equals(request.getServletPath())
+                        || "/api/auth/google".equals(request.getServletPath())
                         || "/api/auth/forgot-password".equals(request.getServletPath())
                         || "/api/auth/reset-password".equals(request.getServletPath())));
     }

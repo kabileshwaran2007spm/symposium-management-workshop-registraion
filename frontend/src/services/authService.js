@@ -6,6 +6,8 @@ export const authService = {
 
   login: (credentials) => api.post('/auth/login', credentials),
 
+  loginWithGoogle: (credential) => api.post('/auth/google', { credential }),
+
   requestPasswordReset: (email) => api.post('/auth/forgot-password', { email }),
 
   resetPassword: (payload) => api.post('/auth/reset-password', payload),

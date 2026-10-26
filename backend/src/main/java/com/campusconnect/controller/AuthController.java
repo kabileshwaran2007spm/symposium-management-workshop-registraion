@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.campusconnect.dto.ApiResponse;
 import com.campusconnect.dto.AuthResponse;
 import com.campusconnect.dto.ForgotPasswordRequest;
+import com.campusconnect.dto.GoogleLoginRequest;
 import com.campusconnect.dto.LoginRequest;
 import com.campusconnect.dto.RegisterRequest;
 import com.campusconnect.dto.ResetPasswordRequest;
@@ -42,6 +43,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", authService.login(request)));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginWithGoogle(
+            @Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Google login successful",
+                authService.loginWithGoogle(request.credential())));
     }
 
     @PostMapping("/forgot-password")

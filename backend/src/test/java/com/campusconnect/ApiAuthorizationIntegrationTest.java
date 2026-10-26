@@ -191,6 +191,16 @@ class ApiAuthorizationIntegrationTest {
                         "This reset link is invalid or expired. Request a new one."));
     }
 
+    @Test
+    @DisplayName("Google login endpoint is public and reports missing provider configuration")
+    void googleLoginEndpointIsPublic() throws Exception {
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"credential\":\"test-google-token\"}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message").value("Google sign-in is not configured."));
+    }
+
     // ------------------------------------------------------------------
     // Role authorization
     // ------------------------------------------------------------------

@@ -29,6 +29,7 @@ import com.campusconnect.exception.UnauthorizedException;
 import com.campusconnect.model.Role;
 import com.campusconnect.model.User;
 import com.campusconnect.repository.UserRepository;
+import com.campusconnect.security.GoogleIdTokenVerifier;
 import com.campusconnect.security.JwtService;
 
 /**
@@ -44,6 +45,9 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private GoogleIdTokenVerifier googleIdTokenVerifier;
+
     /** A real encoder, so the stored hash is genuinely verifiable. */
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -51,7 +55,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder, jwtService);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService, googleIdTokenVerifier);
     }
 
     private RegisterRequest request() {
@@ -166,5 +170,44 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(new LoginRequest("nobody@example.com", "Password@123")))
                 .isInstanceOf(UnauthorizedException.class)
                 .hasMessage("Invalid email or password");
+    }
+
+    @Test
+    @DisplayName("Google login returns a session for an existing verified-email account")
+    void googleLoginReturnsExistingAccount() {
+        User user = new User();
+        user.setId("user-1");
+        user.setName("Arun Kumar");
+        user.setEmail("arun@example.com");
+        user.setStudentId("CS2026001");
+        user.setDepartment("CSE");
+        user.setRole(Role.STUDENT);
+
+        when(googleIdTokenVerifier.verify("google-id-token"))
+                .thenReturn(new GoogleIdTokenVerifier.GoogleIdentity("ARUN@example.com", "Arun Kumar"));
+        when(userRepository.findByEmailIgnoreCase("arun@example.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(user)).thenReturn("signed-jwt");
+        when(jwtService.getExpirySeconds()).thenReturn(86400L);
+
+        AuthResponse response = authService.loginWithGoogle("google-id-token");
+
+        assertThat(response.token()).isEqualTo("signed-jwt");
+        assertThat(response.email()).isEqualTo("arun@example.com");
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Google login does not create accounts for unregistered emails")
+    void googleLoginDoesNotCreateAnAccount() {
+        when(googleIdTokenVerifier.verify("google-id-token"))
+                .thenReturn(new GoogleIdTokenVerifier.GoogleIdentity("new@example.com", "New User"));
+        when(userRepository.findByEmailIgnoreCase("new@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.loginWithGoogle("google-id-token"))
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Create an account first");
+
+        verify(userRepository, never()).save(any(User.class));
+        verify(jwtService, never()).generateToken(any(User.class));
     }
 }

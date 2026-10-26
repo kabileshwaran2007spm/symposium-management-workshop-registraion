@@ -4,6 +4,20 @@ import AuthContext from './authContext';
 import { sessionStore, setUnauthorizedHandler } from '../services/api';
 import { authService } from '../services/authService';
 
+function createSession(data) {
+  return {
+    token: data.token,
+    user: {
+      id: data.userId,
+      name: data.name,
+      email: data.email,
+      studentId: data.studentId,
+      department: data.department,
+      role: data.role,
+    },
+  };
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => sessionStore.load());
   // Set when the server rejects a token, so the login screen can explain why the
@@ -17,26 +31,21 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
-  const login = useCallback(async (credentials) => {
-    const data = await authService.login(credentials);
-
-    const next = {
-      token: data.token,
-      user: {
-        id: data.userId,
-        name: data.name,
-        email: data.email,
-        studentId: data.studentId,
-        department: data.department,
-        role: data.role,
-      },
-    };
-
+  const acceptLogin = useCallback((data) => {
+    const next = createSession(data);
     sessionStore.save(next);
     setSession(next);
     setNotice(null);
     return next.user;
   }, []);
+
+  const login = useCallback(async (credentials) => {
+    return acceptLogin(await authService.login(credentials));
+  }, [acceptLogin]);
+
+  const loginWithGoogle = useCallback(async (credential) => {
+    return acceptLogin(await authService.loginWithGoogle(credential));
+  }, [acceptLogin]);
 
   const logout = useCallback(async () => {
     try {
@@ -61,10 +70,11 @@ export function AuthProvider({ children }) {
       notice,
       clearNotice,
       login,
+      loginWithGoogle,
       logout,
       hasRole: (...roles) => Boolean(user && roles.includes(user.role)),
     };
-  }, [session, notice, clearNotice, login, logout]);
+  }, [session, notice, clearNotice, login, loginWithGoogle, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

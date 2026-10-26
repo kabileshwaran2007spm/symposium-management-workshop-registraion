@@ -17,6 +17,7 @@ import com.campusconnect.exception.UnauthorizedException;
 import com.campusconnect.model.Role;
 import com.campusconnect.model.User;
 import com.campusconnect.repository.UserRepository;
+import com.campusconnect.security.GoogleIdTokenVerifier;
 import com.campusconnect.security.JwtService;
 
 /**
@@ -35,11 +36,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            GoogleIdTokenVerifier googleIdTokenVerifier) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.googleIdTokenVerifier = googleIdTokenVerifier;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -81,6 +88,18 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
         return AuthResponse.of(token, jwtService.getExpirySeconds(), user);
+    }
+
+    public AuthResponse loginWithGoogle(String idToken) {
+        GoogleIdTokenVerifier.GoogleIdentity identity = googleIdTokenVerifier.verify(idToken);
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(identity.email()))
+                .orElseThrow(() -> new UnauthorizedException(
+                        "No CampusConnect account is registered with this Google email. Create an account first."));
+
+        return AuthResponse.of(
+                jwtService.generateToken(user),
+                jwtService.getExpirySeconds(),
+                user);
     }
 
     /**

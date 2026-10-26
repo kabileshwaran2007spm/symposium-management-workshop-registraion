@@ -149,6 +149,7 @@ Render provides `PORT` automatically; the backend uses it and defaults to
 | `JWT_SECRET` | A unique, randomly generated secret of at least 32 characters |
 | `CORS_ALLOWED_ORIGINS` | The exact public Vercel frontend origin, such as `https://your-app.vercel.app` |
 | `APP_SEED_ENABLED` | `false` |
+| `GOOGLE_CLIENT_ID` | The Google OAuth web client ID (optional; same value as the frontend build setting) |
 
 Do not commit the MongoDB URI or JWT secret. In MongoDB Atlas, allow network
 connections from the Render service; prefer Render's outbound IP ranges where
@@ -158,6 +159,26 @@ For the Vercel frontend, set `VITE_API_BASE_URL` to the Render backend API URL,
 for example `https://your-backend.onrender.com/api`, then redeploy the frontend.
 The Vercel frontend origin entered in `CORS_ALLOWED_ORIGINS` must match the
 browser-visible origin exactly.
+
+### Google sign-in
+
+Google sign-in is optional. Create a Google OAuth **Web application** client ID
+in Google Cloud Console and add each frontend origin (for example
+`http://localhost:5173` and your deployed Vercel origin) to its authorized
+JavaScript origins. Set `VITE_GOOGLE_CLIENT_ID` in the frontend build environment
+and `GOOGLE_CLIENT_ID` in the backend environment to that same client ID, then
+restart/redeploy both applications. The client ID is public; do not put a Google
+client secret in the browser or commit credentials.
+
+Users must first have a CampusConnect account registered with the same Google
+email. Google sign-in verifies Google's signed ID token on the backend and only
+authenticates an existing account with a Google-verified email; it does not
+create accounts or assign roles. Existing email/password login and password
+reset continue to work.
+
+For Docker Compose, set `GOOGLE_CLIENT_ID` in the root `.env` file before
+building the frontend image; it is passed to the backend and embedded in the
+frontend bundle as a public client ID.
 
 ### 4. Optional demo data
 
