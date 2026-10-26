@@ -90,6 +90,7 @@ public class PasswordResetService {
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST,
                         "This reset link is invalid or expired. Request a new one."));
         user.setPassword(passwordEncoder.encode(newPassword));
+        user.setTokenVersion(user.getTokenVersion() + 1);
         userRepository.save(user);
     }
 

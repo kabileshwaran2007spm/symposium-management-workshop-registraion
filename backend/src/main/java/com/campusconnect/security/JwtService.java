@@ -40,6 +40,7 @@ public class JwtService {
     private static final int MIN_SECRET_BYTES = 32;
 
     private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_TOKEN_VERSION = "ver";
 
     private final JwtEncoder encoder;
     private final JwtDecoder decoder;
@@ -88,6 +89,7 @@ public class JwtService {
                 .expiresAt(now.plus(expiry))
                 .subject(user.getId())
                 .claim(CLAIM_ROLE, user.getRole().name())
+                .claim(CLAIM_TOKEN_VERSION, user.getTokenVersion())
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

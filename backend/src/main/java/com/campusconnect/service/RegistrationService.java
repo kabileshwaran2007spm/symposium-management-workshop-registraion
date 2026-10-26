@@ -156,12 +156,26 @@ public class RegistrationService {
                     "Attendance has already been recorded, so this registration cannot be cancelled");
         }
 
-        registration.setStatus(RegistrationStatus.CANCELLED);
-        registration.setCancelledAt(Instant.now());
-        registrationRepository.save(registration);
+        Registration cancelled = registrationRepository.cancelConfirmedRegistration(
+                registration.getId(), userId, eventId, Instant.now()).orElse(null);
+        if (cancelled == null) {
+            Registration current = registrationRepository
+                    .findFirstByUserIdAndEventIdOrderByRegisteredAtDesc(userId, eventId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "You are not registered for this event"));
+            if (current.getStatus() == RegistrationStatus.ATTENDED) {
+                throw new BusinessRuleException(
+                        "Attendance has already been recorded, so this registration cannot be cancelled");
+            }
+            if (current.getStatus() == RegistrationStatus.CANCELLED) {
+                throw new BusinessRuleException("This registration is already cancelled");
+            }
+            throw new BusinessRuleException(
+                    "Registration changed while cancelling. Refresh and try again.");
+        }
 
         // Frees the seat for the next student. The update is guarded so the count
-        // can never go negative even if called twice.
+        // is released only after this request atomically changes CONFIRMED to CANCELLED.
         eventRepository.releaseSeat(eventId);
 
         log.info("Student {} cancelled registration for event {}", userId, eventId);

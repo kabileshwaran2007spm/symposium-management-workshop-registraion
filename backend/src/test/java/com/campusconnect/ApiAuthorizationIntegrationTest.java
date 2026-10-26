@@ -174,6 +174,93 @@ class ApiAuthorizationIntegrationTest {
     }
 
     @Test
+    @DisplayName("public discovery supports allowlisted event sorting")
+    void publicDiscoverySupportsSorting() throws Exception {
+        Event existingEvent = eventRepository.findById(eventId).orElseThrow();
+        existingEvent.setTitle("Zebra Robotics Workshop");
+        eventRepository.save(existingEvent);
+
+        Event laterEvent = new Event();
+        laterEvent.setTitle("Aardvark Robotics Seminar");
+        laterEvent.setDescription("A seminar about robotics and automation.");
+        laterEvent.setCategory(EventCategory.SEMINAR);
+        laterEvent.setDepartment("ECE");
+        laterEvent.setDate(LocalDate.now().plusDays(20));
+        laterEvent.setStartTime(LocalTime.of(14, 0));
+        laterEvent.setEndTime(LocalTime.of(16, 0));
+        laterEvent.setVenue("Auditorium");
+        laterEvent.setCapacity(80);
+        laterEvent.setRegisteredCount(0);
+        laterEvent.setRegistrationDeadline(LocalDate.now().plusDays(15));
+        laterEvent.setStatus(EventStatus.APPROVED);
+        laterEvent.setOrganizerId(userRepository.findByEmailIgnoreCase("cse@test.edu").orElseThrow().getId());
+        laterEvent.setCreatedAt(Instant.now());
+        laterEvent.setUpdatedAt(Instant.now());
+        eventRepository.save(laterEvent);
+
+        mockMvc.perform(get("/api/events?sort=TITLE&size=2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].title").value("Aardvark Robotics Seminar"));
+
+        mockMvc.perform(get("/api/events?sort=LATEST_DATE&size=2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].title").value("Aardvark Robotics Seminar"));
+    }
+
+    @Test
+    @DisplayName("users can read and update only the editable fields in their own profile")
+    void studentCanUpdateOwnProfileWithoutChangingProtectedFields() throws Exception {
+        mockMvc.perform(get("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("arun@test.edu"))
+                .andExpect(jsonPath("$.data.password").doesNotExist());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Arun Updated",
+                                  "department": "ECE",
+                                  "role": "ADMIN",
+                                  "studentId": "OTHER-ID",
+                                  "email": "other@test.edu",
+                                  "password": "new-password"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name").value("Arun Updated"))
+                .andExpect(jsonPath("$.data.department").value("ECE"))
+                .andExpect(jsonPath("$.data.role").value("STUDENT"))
+                .andExpect(jsonPath("$.data.studentId").value("CS2026001"))
+                .andExpect(jsonPath("$.data.email").value("arun@test.edu"))
+                .andExpect(jsonPath("$.data.password").doesNotExist());
+
+        mockMvc.perform(get("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name").value("Arun Updated"))
+                .andExpect(jsonPath("$.data.department").value("ECE"));
+    }
+
+    @Test
+    @DisplayName("profile reads and writes require authentication and validate editable fields")
+    void profileRequiresAuthenticationAndValidFields() throws Exception {
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .put("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + studentToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\" \",\"department\":\"CSE\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
     @DisplayName("password reset requests are public but do not reveal whether an email exists")
     void passwordResetEndpointsArePublic() throws Exception {
         mockMvc.perform(post("/api/auth/forgot-password")

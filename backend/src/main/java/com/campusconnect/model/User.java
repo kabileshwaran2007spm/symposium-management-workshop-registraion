@@ -39,6 +39,8 @@ public class User {
 
     private Role role;
 
+    private int tokenVersion;
+
     private Instant createdAt;
 
     public User() {
@@ -98,6 +100,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public int getTokenVersion() {
+        return tokenVersion;
+    }
+
+    public void setTokenVersion(int tokenVersion) {
+        this.tokenVersion = tokenVersion;
     }
 
     public Instant getCreatedAt() {

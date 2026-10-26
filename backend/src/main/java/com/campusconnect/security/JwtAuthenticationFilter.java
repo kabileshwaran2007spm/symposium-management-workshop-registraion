@@ -13,6 +13,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+
+import com.campusconnect.model.User;
+import com.campusconnect.repository.UserRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -37,9 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String ROLE_PREFIX = "ROLE_";
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -65,9 +70,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Jwt jwt = jwtService.decode(token);
             String userId = jwt.getSubject();
             String role = jwt.getClaimAsString("role");
+            Object versionClaim = jwt.getClaims().get("ver");
+            Integer tokenVersion = versionClaim instanceof Number number ? number.intValue() : null;
 
             if (userId == null || role == null || role.isBlank()) {
                 log.debug("Rejecting token without subject or role claim");
+                return;
+            }
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null
+                    || !user.getRole().name().equals(role)
+                    || (tokenVersion != null ? tokenVersion : 0) != user.getTokenVersion()) {
+                log.debug("Rejecting token for an unavailable or changed account");
                 return;
             }
 

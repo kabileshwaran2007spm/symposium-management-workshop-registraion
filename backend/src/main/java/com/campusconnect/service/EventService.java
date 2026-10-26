@@ -93,13 +93,8 @@ public class EventService {
                     "A " + event.getStatus().name().toLowerCase() + " event can no longer be edited");
         }
 
-        if (request.capacity() < event.getRegisteredCount()) {
-            throw new BusinessRuleException("Capacity cannot be lower than the "
-                    + event.getRegisteredCount() + " students already registered");
-        }
-
         EventStatus previousStatus = event.getStatus();
-        applyRequest(event, request);
+        EventStatus resultingStatus = previousStatus;
 
         // Editing a rejected or draft event may resubmit it for approval. Editing
         // an approved event keeps it approved, so an organizer is not forced to wait
@@ -107,15 +102,25 @@ public class EventService {
         EventStatus requested = request.status();
         if (requested != null && previousStatus != EventStatus.APPROVED) {
             if (previousStatus.canTransitionTo(requested)) {
-                event.setStatus(requested);
+                resultingStatus = requested;
             } else {
                 throw new BusinessRuleException(
                         "Cannot move an event from " + previousStatus + " to " + requested);
             }
         }
 
-        event.setUpdatedAt(Instant.now());
-        Event saved = eventRepository.save(event);
+        Event saved = eventRepository.updateEditableFields(
+                eventId, requesterId, previousStatus, request, resultingStatus).orElse(null);
+        if (saved == null) {
+            Event current = findEventOrThrow(eventId);
+            requireOwnership(current, requesterId);
+            if (request.capacity() < current.getRegisteredCount()) {
+                throw new BusinessRuleException("Capacity cannot be lower than the "
+                        + current.getRegisteredCount() + " students already registered");
+            }
+            throw new BusinessRuleException(
+                    "This event changed while you were editing. Refresh the page and try again.");
+        }
         return toResponse(saved, true);
     }
 

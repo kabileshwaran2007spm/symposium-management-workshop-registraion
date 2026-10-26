@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -236,11 +237,18 @@ class EventServiceTest {
         Event rejected = savedEvent(EventStatus.REJECTED, 0);
         rejected.setOrganizerId(ORGANIZER_ID);
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(rejected));
-        when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0));
+        when(eventRepository.updateEditableFields(
+                eq(EVENT_ID), eq(ORGANIZER_ID), eq(EventStatus.REJECTED),
+                any(EventRequest.class), eq(EventStatus.PENDING)))
+                .thenAnswer(i -> {
+                    rejected.setStatus(EventStatus.PENDING);
+                    return Optional.of(rejected);
+                });
 
         EventResponse response = eventService.updateEvent(EVENT_ID, request(EventStatus.PENDING), ORGANIZER_ID);
 
         assertThat(response.status()).isEqualTo(EventStatus.PENDING);
+        verify(eventRepository, never()).save(any(Event.class));
     }
 
     @Test
@@ -248,11 +256,15 @@ class EventServiceTest {
     void editingApprovedEventKeepsApproval() {
         Event approved = savedEvent(EventStatus.APPROVED, 10);
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(approved));
-        when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0));
+        when(eventRepository.updateEditableFields(
+                eq(EVENT_ID), eq(ORGANIZER_ID), eq(EventStatus.APPROVED),
+                any(EventRequest.class), eq(EventStatus.APPROVED)))
+                .thenReturn(Optional.of(approved));
 
         EventResponse response = eventService.updateEvent(EVENT_ID, request(null), ORGANIZER_ID);
 
         assertThat(response.status()).isEqualTo(EventStatus.APPROVED);
+        verify(eventRepository, never()).save(any(Event.class));
     }
 
     // ------------------------------------------------------------------

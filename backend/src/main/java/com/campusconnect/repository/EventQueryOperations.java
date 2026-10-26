@@ -7,7 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.campusconnect.dto.EventFilter;
+import com.campusconnect.dto.EventRequest;
 import com.campusconnect.model.Event;
+import com.campusconnect.model.EventStatus;
 
 /**
  * Event queries that need more than a derived query method.
@@ -32,4 +34,16 @@ public interface EventQueryOperations {
 
     /** Filtered, paginated event listing. */
     Page<Event> search(EventFilter filter, Pageable pageable);
+
+    /**
+     * Updates organizer-editable event fields without replacing concurrent seat
+     * claims. The status and capacity predicates make the transition atomic with
+     * respect to concurrent approvals and registrations.
+     */
+    Optional<Event> updateEditableFields(
+            String eventId,
+            String organizerId,
+            EventStatus expectedStatus,
+            EventRequest request,
+            EventStatus resultingStatus);
 }

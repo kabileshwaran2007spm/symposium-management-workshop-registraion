@@ -104,6 +104,7 @@ class PasswordResetServiceTest {
         service.resetPassword("one-time-token", "NewPassword123");
 
         assertThat(passwordEncoder.matches("NewPassword123", user.getPassword())).isTrue();
+        assertThat(user.getTokenVersion()).isEqualTo(1);
         verify(userRepository).save(user);
     }
 

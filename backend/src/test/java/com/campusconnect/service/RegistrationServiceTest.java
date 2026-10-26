@@ -275,7 +275,13 @@ class RegistrationServiceTest {
         active.setStatus(RegistrationStatus.CONFIRMED);
         when(registrationRepository.findFirstByUserIdAndEventIdOrderByRegisteredAtDesc(STUDENT_ID, EVENT_ID))
                 .thenReturn(Optional.of(active));
-        when(registrationRepository.save(any(Registration.class))).thenAnswer(i -> i.getArgument(0));
+        when(registrationRepository.cancelConfirmedRegistration(
+                eq("registration-1"), eq(STUDENT_ID), eq(EVENT_ID), any(Instant.class)))
+                .thenAnswer(invocation -> {
+                    active.setStatus(RegistrationStatus.CANCELLED);
+                    active.setCancelledAt(invocation.getArgument(3));
+                    return Optional.of(active);
+                });
 
         String message = registrationService.cancel(STUDENT_ID, EVENT_ID);
 
@@ -283,6 +289,28 @@ class RegistrationServiceTest {
         assertThat(active.getStatus()).isEqualTo(RegistrationStatus.CANCELLED);
         assertThat(active.getCancelledAt()).isNotNull();
         verify(eventRepository).releaseSeat(EVENT_ID);
+    }
+
+    @Test
+    @DisplayName("a concurrent cancellation releases no second seat")
+    void concurrentCancellationDoesNotReleaseAnotherSeat() {
+        when(eventService.findEventOrThrow(EVENT_ID)).thenReturn(openEvent(200, 0));
+        Registration active = new Registration();
+        active.setId("registration-1");
+        active.setStatus(RegistrationStatus.CONFIRMED);
+        Registration alreadyCancelled = new Registration();
+        alreadyCancelled.setStatus(RegistrationStatus.CANCELLED);
+        when(registrationRepository.findFirstByUserIdAndEventIdOrderByRegisteredAtDesc(STUDENT_ID, EVENT_ID))
+                .thenReturn(Optional.of(active), Optional.of(alreadyCancelled));
+        when(registrationRepository.cancelConfirmedRegistration(
+                eq("registration-1"), eq(STUDENT_ID), eq(EVENT_ID), any(Instant.class)))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> registrationService.cancel(STUDENT_ID, EVENT_ID))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("already cancelled");
+
+        verify(eventRepository, never()).releaseSeat(anyString());
     }
 
     @Test

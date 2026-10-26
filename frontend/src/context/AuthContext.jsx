@@ -39,6 +39,18 @@ export function AuthProvider({ children }) {
     return next.user;
   }, []);
 
+  const updateUserProfile = useCallback(({ name, department }) => {
+    const current = sessionStore.load();
+    if (!current) return;
+
+    const next = {
+      ...current,
+      user: { ...current.user, name, department },
+    };
+    sessionStore.save(next);
+    setSession(next);
+  }, []);
+
   const login = useCallback(async (credentials) => {
     return acceptLogin(await authService.login(credentials));
   }, [acceptLogin]);
@@ -71,10 +83,11 @@ export function AuthProvider({ children }) {
       clearNotice,
       login,
       loginWithGoogle,
+      updateUserProfile,
       logout,
       hasRole: (...roles) => Boolean(user && roles.includes(user.role)),
     };
-  }, [session, notice, clearNotice, login, loginWithGoogle, logout]);
+  }, [session, notice, clearNotice, login, loginWithGoogle, updateUserProfile, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -7,6 +7,7 @@ import EventCard from '../components/EventCard';
 import Filter from '../components/Filter';
 import Pagination from '../components/Pagination';
 import SearchBar from '../components/SearchBar';
+import Select from '../components/Select';
 import { SkeletonGrid } from '../components/SkeletonCard';
 import { eventService } from '../services/eventService';
 import useAsync from '../utils/useAsync';
@@ -24,15 +25,17 @@ const PAGE_SIZE = 12;
 export default function Events() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [sort, setSort] = useState('UPCOMING_DATE');
   const [page, setPage] = useState(0);
 
   const { data, loading, error, reload } = useAsync(
-    () => eventService.list({ ...filters, search, page, size: PAGE_SIZE }),
-    [search, filters.category, filters.department, filters.availability, filters.date, page],
+    () => eventService.list({ ...filters, search, sort, page, size: PAGE_SIZE }),
+    [search, filters.category, filters.department, filters.availability, filters.date, sort, page],
   );
 
   const events = data?.content ?? [];
-  const hasFilters = Boolean(search || filters.category || filters.department || filters.availability || filters.date);
+  const hasFilters = Boolean(search || filters.category || filters.department
+    || filters.availability || filters.date || sort !== 'UPCOMING_DATE');
 
   const updateFilter = (next) => {
     setFilters(next);
@@ -47,6 +50,7 @@ export default function Events() {
   const clearAll = () => {
     setSearch('');
     setFilters(EMPTY_FILTERS);
+    setSort('UPCOMING_DATE');
     setPage(0);
   };
 
@@ -62,6 +66,19 @@ export default function Events() {
       <div className="events-toolbar">
         <SearchBar value={search} onChange={updateSearch} />
         <Filter values={filters} onChange={updateFilter} />
+        <Select
+          label="Sort events"
+          value={sort}
+          onChange={(event) => {
+            setSort(event.target.value);
+            setPage(0);
+          }}
+          options={[
+            { value: 'UPCOMING_DATE', label: 'Upcoming first' },
+            { value: 'LATEST_DATE', label: 'Latest date first' },
+            { value: 'TITLE', label: 'Event name' },
+          ]}
+        />
 
         <div className="row-between">
           <span className="events-count">

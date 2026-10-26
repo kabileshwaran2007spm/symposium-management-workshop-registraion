@@ -7,9 +7,10 @@ import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { CategoryBadge, RegistrationStatusBadge } from '../components/Badge';
+import Select from '../components/Select';
 import { useToast } from '../context/useToast';
 import { registrationService } from '../services/registrationService';
-import { formatDate, formatTimeRange } from '../utils/format';
+import { formatDate, formatDateTime, formatTimeRange } from '../utils/format';
 import useAsync from '../utils/useAsync';
 
 const TABS = [
@@ -23,6 +24,7 @@ export default function MyRegistrations() {
   const navigate = useNavigate();
 
   const [tab, setTab] = useState('upcoming');
+  const [sortOrder, setSortOrder] = useState('event-date');
   const [pendingCancel, setPendingCancel] = useState(null);
   const [busy, setBusy] = useState(false);
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
@@ -36,11 +38,20 @@ export default function MyRegistrations() {
     const all = data ?? [];
 
     return {
-      upcoming: all.filter((item) => item.status !== 'CANCELLED' && item.eventDate >= today),
-      completed: all.filter((item) => item.status !== 'CANCELLED' && item.eventDate < today),
+      upcoming: all.filter((item) => item.status !== 'CANCELLED'
+        && item.status !== 'ATTENDED'
+        && item.eventDate >= today),
+      completed: all.filter((item) => item.status === 'ATTENDED'
+        || (item.status !== 'CANCELLED' && item.eventDate < today)),
       cancelled: all.filter((item) => item.status === 'CANCELLED'),
     };
   }, [data, today]);
+
+  const rows = useMemo(() => [...grouped[tab]].sort((a, b) => (
+    sortOrder === 'registered-date'
+      ? (b.registeredAt ?? '').localeCompare(a.registeredAt ?? '')
+      : a.eventDate.localeCompare(b.eventDate)
+  )), [grouped, sortOrder, tab]);
 
   const handleCancel = async () => {
     if (!pendingCancel) return;
@@ -72,8 +83,6 @@ export default function MyRegistrations() {
     );
   }
 
-  const rows = grouped[tab];
-
   return (
     <>
       <div className="page-header">
@@ -94,6 +103,18 @@ export default function MyRegistrations() {
             {item.label} ({grouped[item.id].length})
           </button>
         ))}
+      </div>
+
+      <div className="filter-bar" style={{ margin: 'var(--space-4) 0' }}>
+        <Select
+          label="Sort activity"
+          value={sortOrder}
+          onChange={(event) => setSortOrder(event.target.value)}
+          options={[
+            { value: 'event-date', label: 'Event date (soonest first)' },
+            { value: 'registered-date', label: 'Registration date (newest first)' },
+          ]}
+        />
       </div>
 
       {rows.length === 0 ? (
@@ -133,12 +154,17 @@ export default function MyRegistrations() {
                     {formatTimeRange(registration.startTime, registration.endTime)} ·{' '}
                     {registration.venue}
                   </div>
+                  <div className="text-caption">
+                    Registered {formatDateTime(registration.registeredAt)}
+                    {registration.cancelledAt && ` · Cancelled ${formatDateTime(registration.cancelledAt)}`}
+                  </div>
                 </div>
 
                 <div className="row">
-                  <Link to={`/my-registrations/${registration.registrationId}/pass`}>
-                    View pass
-                  </Link>
+                  <Link to={`/events/${registration.eventId}`}>Event details</Link>
+                  {registration.status !== 'CANCELLED' && (
+                    <Link to={`/my-registrations/${registration.registrationId}/pass`}>View pass</Link>
+                  )}
 
                   {registration.status !== 'CANCELLED' && registration.status !== 'ATTENDED' && (
                     <Button

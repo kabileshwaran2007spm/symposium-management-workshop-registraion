@@ -54,7 +54,7 @@ class JwtServiceTest {
 
         assertThat(decoded.getClaimAsString("name")).isNull();
         assertThat(decoded.getClaimAsString("email")).isNull();
-        assertThat(decoded.getClaims()).containsOnlyKeys("sub", "role", "iss", "iat", "exp");
+        assertThat(decoded.getClaims()).containsOnlyKeys("sub", "role", "ver", "iss", "iat", "exp");
     }
 
     @Test

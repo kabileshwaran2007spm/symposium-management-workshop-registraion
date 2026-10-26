@@ -23,6 +23,7 @@ import com.campusconnect.dto.EventAvailability;
 import com.campusconnect.dto.EventFilter;
 import com.campusconnect.dto.EventRequest;
 import com.campusconnect.dto.EventResponse;
+import com.campusconnect.dto.EventSort;
 import com.campusconnect.dto.PageResponse;
 import com.campusconnect.model.Event;
 import com.campusconnect.model.EventCategory;
@@ -54,6 +55,7 @@ public class EventController {
             @RequestParam(required = false) String department,
             @RequestParam(required = false) LocalDate date,
             @RequestParam(required = false) EventAvailability availability,
+            @RequestParam(defaultValue = "UPCOMING_DATE") EventSort sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 
@@ -64,7 +66,7 @@ public class EventController {
         filter.setDate(date);
         filter.setAvailability(availability);
 
-        Pageable pageable = pageable(page, size);
+        Pageable pageable = pageable(page, size, sort);
         return ResponseEntity.ok(ApiResponse.ok("Events retrieved successfully",
                 PageResponse.from(eventService.toResponsePage(
                         eventService.searchPublicEvents(filter, pageable), true))));
@@ -102,11 +104,10 @@ public class EventController {
     }
 
     /** Upcoming events first, then by start time. */
-    private Pageable pageable(int page, int size) {
+    private Pageable pageable(int page, int size, EventSort sort) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
-        return PageRequest.of(safePage, safeSize, Sort.by(
-                Sort.Order.asc("date"), Sort.Order.asc("startTime")));
+        return PageRequest.of(safePage, safeSize, sort.toSort());
     }
 
     private String currentUserIdOrNull() {

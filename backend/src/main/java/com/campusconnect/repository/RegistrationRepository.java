@@ -12,7 +12,8 @@ import org.springframework.data.mongodb.repository.Query;
 import com.campusconnect.model.Registration;
 import com.campusconnect.model.RegistrationStatus;
 
-public interface RegistrationRepository extends MongoRepository<Registration, String> {
+public interface RegistrationRepository
+        extends MongoRepository<Registration, String>, RegistrationQueryOperations {
 
     Optional<Registration> findByQrToken(String qrToken);
 

@@ -1,6 +1,7 @@
 package com.campusconnect.repository;
 
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import com.campusconnect.dto.EventAvailability;
 import com.campusconnect.dto.EventFilter;
+import com.campusconnect.dto.EventRequest;
 import com.campusconnect.model.Event;
 import com.campusconnect.model.EventStatus;
 
@@ -67,6 +69,35 @@ public class EventQueryOperationsImpl implements EventQueryOperations {
                 ? List.of()
                 : mongoTemplate.find(Query.of(query).with(pageable), Event.class);
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Optional<Event> updateEditableFields(
+            String eventId,
+            String organizerId,
+            EventStatus expectedStatus,
+            EventRequest request,
+            EventStatus resultingStatus) {
+        Query query = Query.query(Criteria.where("_id").is(eventId)
+                .and("organizerId").is(organizerId)
+                .and("status").is(expectedStatus)
+                .and("registeredCount").lte(request.capacity()));
+        Update update = new Update()
+                .set("title", request.title())
+                .set("description", request.description())
+                .set("category", request.category())
+                .set("department", request.department())
+                .set("date", request.date())
+                .set("startTime", request.startTime())
+                .set("endTime", request.endTime())
+                .set("venue", request.venue())
+                .set("capacity", request.capacity())
+                .set("registrationDeadline", request.registrationDeadline())
+                .set("status", resultingStatus)
+                .set("updatedAt", Instant.now());
+
+        return Optional.ofNullable(mongoTemplate.findAndModify(
+                query, update, FindAndModifyOptions.options().returnNew(true), Event.class));
     }
 
     private Query buildQuery(EventFilter filter) {
