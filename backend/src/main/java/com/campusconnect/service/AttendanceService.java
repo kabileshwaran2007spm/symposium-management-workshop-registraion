@@ -3,7 +3,6 @@ package com.campusconnect.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -122,11 +121,11 @@ public class AttendanceService {
         }
 
         Map<String, User> users = userRepository.findByIdIn(records.stream()
-                        .map(Attendance::getUserId)
+                        .map(record -> record.getUserId())
                         .distinct()
                         .toList())
                 .stream()
-                .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(user -> user.getId(), user -> user, (a, b) -> a));
 
         return records.stream()
                 .map(record -> AttendanceResponse.from(record, users.get(record.getUserId())))

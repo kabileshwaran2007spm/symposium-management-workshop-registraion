@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.campusconnect.dto.ApiResponse;
 import com.campusconnect.dto.AuthResponse;
+import com.campusconnect.dto.ForgotPasswordRequest;
 import com.campusconnect.dto.LoginRequest;
 import com.campusconnect.dto.RegisterRequest;
+import com.campusconnect.dto.ResetPasswordRequest;
 import com.campusconnect.dto.UserResponse;
 import com.campusconnect.service.AuthService;
+import com.campusconnect.service.PasswordResetService;
 
 import jakarta.validation.Valid;
 
@@ -21,9 +24,11 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService) {
         this.authService = authService;
+        this.passwordResetService = passwordResetService;
     }
 
     /** Public signup. Always creates a STUDENT account. */
@@ -37,6 +42,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.ok("Login successful", authService.login(request)));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestReset(request.email());
+        return ResponseEntity.ok(ApiResponse.ok(
+                "If an account exists for that email, a password reset link has been sent.", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.token(), request.password());
+        return ResponseEntity.ok(ApiResponse.ok("Password reset successfully. Please log in.", null));
     }
 
     /**

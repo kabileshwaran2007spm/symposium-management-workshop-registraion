@@ -6,6 +6,10 @@ export const authService = {
 
   login: (credentials) => api.post('/auth/login', credentials),
 
+  requestPasswordReset: (email) => api.post('/auth/forgot-password', { email }),
+
+  resetPassword: (payload) => api.post('/auth/reset-password', payload),
+
   /**
    * The server holds no session, so this is a courtesy call: the real logout is
    * discarding the token locally.

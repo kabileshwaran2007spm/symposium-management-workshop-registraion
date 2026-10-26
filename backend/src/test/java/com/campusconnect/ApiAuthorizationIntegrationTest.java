@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,7 +78,7 @@ class ApiAuthorizationIntegrationTest {
     private String eventId;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         attendanceRepository.deleteAll();
         registrationRepository.deleteAll();
         eventRepository.deleteAll();
@@ -172,6 +173,24 @@ class ApiAuthorizationIntegrationTest {
                 .andExpect(jsonPath("$.data.content[0].title").value("AI and Machine Learning Workshop"));
     }
 
+    @Test
+    @DisplayName("password reset requests are public but do not reveal whether an email exists")
+    void passwordResetEndpointsArePublic() throws Exception {
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"unknown@test.edu\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message")
+                        .value("If an account exists for that email, a password reset link has been sent."));
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"not-a-valid-token\",\"password\":\"Password123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        "This reset link is invalid or expired. Request a new one."));
+    }
+
     // ------------------------------------------------------------------
     // Role authorization
     // ------------------------------------------------------------------
@@ -248,7 +267,7 @@ class ApiAuthorizationIntegrationTest {
         String createdId = eventRepository.findAll().stream()
                 .filter(e -> e.getStatus() == EventStatus.PENDING)
                 .findFirst()
-                .map(Event::getId)
+                .map(event -> Objects.requireNonNull(event).getId())
                 .orElseGet(() -> {
                     Event pending = eventRepository.findById(eventId).orElseThrow();
                     pending.setStatus(EventStatus.PENDING);

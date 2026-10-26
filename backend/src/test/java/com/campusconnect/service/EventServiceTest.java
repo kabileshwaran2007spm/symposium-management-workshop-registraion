@@ -13,11 +13,11 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -25,7 +25,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-
 import com.campusconnect.dto.EventFilter;
 import com.campusconnect.dto.EventRequest;
 import com.campusconnect.dto.EventResponse;
@@ -58,12 +57,8 @@ class EventServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @InjectMocks
     private EventService eventService;
-
-    @BeforeEach
-    void setUp() {
-        eventService = new EventService(eventRepository, registrationRepository, userRepository);
-    }
 
     private EventRequest request(EventStatus status) {
         return new EventRequest(
@@ -384,8 +379,9 @@ class EventServiceTest {
         Page<EventResponse> page = eventService.toResponsePage(
                 new PageImpl<>(List.of(first, second), PageRequest.of(0, 10), 2), false);
 
-        assertThat(page.getContent()).extracting(EventResponse::organizerName)
-                .containsExactly("Computer Science Club", "Robotics Club");
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getContent().get(0).organizerName()).isEqualTo("Computer Science Club");
+        assertThat(page.getContent().get(1).organizerName()).isEqualTo("Robotics Club");
     }
 
     @Test

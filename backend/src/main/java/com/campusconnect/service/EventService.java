@@ -231,7 +231,8 @@ public class EventService {
 
     public Map<String, String> organizerNames(Collection<Event> events) {
         Set<String> ids = events.stream()
-                .map(Event::getOrganizerId)
+                .filter(Objects::nonNull)
+                .map(event -> event.getOrganizerId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(HashSet::new));
 
@@ -250,7 +251,9 @@ public class EventService {
         if (organizerId == null) {
             return null;
         }
-        return userRepository.findById(organizerId).map(User::getName).orElse(null);
+        return userRepository.findById(organizerId)
+                .map(organizer -> organizer == null ? null : organizer.getName())
+                .orElse(null);
     }
 
     // ------------------------------------------------------------------

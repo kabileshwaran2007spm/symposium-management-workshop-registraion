@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Fixed-window rate limiting for the unauthenticated authentication endpoints.
  *
- * <p>{@code /api/auth/login} and {@code /api/auth/register} accept a password with
+ * <p>Public authentication endpoints accept credentials or trigger password reset,
  * no token, which makes them the brute-force surface of the API. The limiter is
  * deliberately tiny and dependency-free: a per-client fixed window keyed by
  * {@code client IP + endpoint}, implemented with a concurrent map. It restarts
@@ -46,11 +46,13 @@ public class AuthenticationRateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        // Only the two unauthenticated write endpoints are throttled. Everything
+        // Only unauthenticated authentication writes are throttled. Everything
         // else relies on token authentication, which is not brute-forceable.
         return !(HttpMethod.POST.matches(request.getMethod())
                 && ("/api/auth/login".equals(request.getServletPath())
-                        || "/api/auth/register".equals(request.getServletPath())));
+                        || "/api/auth/register".equals(request.getServletPath())
+                        || "/api/auth/forgot-password".equals(request.getServletPath())
+                        || "/api/auth/reset-password".equals(request.getServletPath())));
     }
 
     @Override

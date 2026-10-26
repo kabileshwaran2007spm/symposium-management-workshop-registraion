@@ -53,7 +53,8 @@ and administrators oversee the whole platform.
 
 ### 1. Database
 
-Ensure MongoDB is running. The `campusconnect` database is created automatically; demo data is seeded on first boot (see below).
+Ensure MongoDB is running. The `campusconnect` database is created automatically.
+Optional demo seeding is disabled by default to preserve existing data (see below).
 
 ### 2. Backend
 
@@ -93,6 +94,70 @@ npm.cmd run dev
 ```
 
 Open `http://localhost:5173`.
+
+### Run the full stack with Docker
+
+Install Docker Desktop and make sure its engine is running. From the repository
+root, create a local JWT secret and start the services:
+
+```powershell
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+if (-not (Test-Path '.env')) {
+  try {
+    $rng.GetBytes($bytes)
+    [IO.File]::WriteAllText('.env', 'JWT_SECRET=' + [Convert]::ToBase64String($bytes))
+  } finally {
+    $rng.Dispose()
+  }
+} else {
+  $rng.Dispose()
+  Write-Output 'Preserving existing .env; ensure it contains a secure JWT_SECRET.'
+}
+
+docker compose up --build
+```
+
+Open `http://localhost:3000`. The frontend proxies API requests to the backend;
+the backend connects to the MongoDB service over the private Compose network.
+MongoDB data is stored in the persistent `mongodb-data` volume. Seeding is off
+by default. To stop the services, run `docker compose down`; this preserves the
+database volume. To remove the database as well, run `docker compose down -v`.
+
+### Deploy the backend on Render
+
+Create a **Web Service** from this repository with these settings:
+
+| Render field | Value |
+|---|---|
+| Name | Any available service name |
+| Branch | `main` |
+| Root Directory | `backend` |
+| Language | `Docker` |
+| Dockerfile Path | `./Dockerfile` |
+| Docker Build Context Directory | `.` |
+| Build Command | Leave blank |
+| Start Command | Leave blank |
+| Health Check Path | `/api/events` |
+
+Render provides `PORT` automatically; the backend uses it and defaults to
+`8080` for local development. Add these environment variables in Render:
+
+| Variable | Value |
+|---|---|
+| `MONGODB_URI` | Your MongoDB Atlas connection string for the `campusconnect` database |
+| `JWT_SECRET` | A unique, randomly generated secret of at least 32 characters |
+| `CORS_ALLOWED_ORIGINS` | The exact public Vercel frontend origin, such as `https://your-app.vercel.app` |
+| `APP_SEED_ENABLED` | `false` |
+
+Do not commit the MongoDB URI or JWT secret. In MongoDB Atlas, allow network
+connections from the Render service; prefer Render's outbound IP ranges where
+available rather than unrestricted access.
+
+For the Vercel frontend, set `VITE_API_BASE_URL` to the Render backend API URL,
+for example `https://your-backend.onrender.com/api`, then redeploy the frontend.
+The Vercel frontend origin entered in `CORS_ALLOWED_ORIGINS` must match the
+browser-visible origin exactly.
 
 ### 4. Optional demo data
 

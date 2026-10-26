@@ -23,7 +23,6 @@ import com.campusconnect.dto.PageResponse;
 import com.campusconnect.dto.UserResponse;
 import com.campusconnect.exception.BusinessRuleException;
 import com.campusconnect.exception.ResourceNotFoundException;
-import com.campusconnect.model.Club;
 import com.campusconnect.model.Event;
 import com.campusconnect.model.EventStatus;
 import com.campusconnect.model.Registration;
@@ -127,8 +126,8 @@ public class AdminService {
                         .filter(registration -> registration.getStatus() == status)
                         .toList();
 
-        Map<String, Event> events = eventsById(content.stream().map(Registration::getEventId).distinct().toList());
-        Map<String, User> users = usersById(content.stream().map(Registration::getUserId).distinct().toList());
+        Map<String, Event> events = eventsById(content.stream().map(registration -> registration.getEventId()).distinct().toList());
+        Map<String, User> users = usersById(content.stream().map(registration -> registration.getUserId()).distinct().toList());
 
         List<AdminRegistrationResponse> rows = content.stream()
                 .map(registration -> AdminRegistrationResponse.from(
@@ -149,7 +148,8 @@ public class AdminService {
     public List<ClubResponse> listClubs() {
         return clubRepository.findAll().stream()
                 .map(ClubResponse::from)
-                .sorted(java.util.Comparator.comparing(ClubResponse::name,
+                .sorted(java.util.Comparator.comparing(
+                        club -> club.name() == null ? null : club.name(),
                         java.util.Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();
     }
@@ -221,19 +221,30 @@ public class AdminService {
     }
 
     private Map<String, Event> eventsById(List<String> ids) {
-        if (ids.isEmpty()) {
+        List<String> safeIds = ids.stream()
+                .filter(Objects::nonNull)
+                .filter(id -> !id.isBlank())
+                .distinct()
+                .toList();
+        if (safeIds.isEmpty()) {
             return Map.of();
         }
-        return eventRepository.findByIdIn(ids).stream()
-                .collect(Collectors.toMap(Event::getId, Function.identity(), (a, b) -> a));
+        return eventRepository.findByIdIn(safeIds).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(event -> event.getId(), Function.identity(), (a, b) -> a));
     }
 
     private Map<String, User> usersById(List<String> ids) {
-        if (ids.isEmpty()) {
+        List<String> safeIds = ids.stream()
+                .filter(Objects::nonNull)
+                .filter(id -> !id.isBlank())
+                .distinct()
+                .toList();
+        if (safeIds.isEmpty()) {
             return Map.of();
         }
-        return userRepository.findByIdIn(ids).stream()
+        return userRepository.findByIdIn(safeIds).stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(user -> user.getId(), Function.identity(), (a, b) -> a));
     }
 }

@@ -69,8 +69,13 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminService(userRepository, eventRepository, registrationRepository,
-                attendanceRepository, clubRepository, eventService);
+        adminService = new AdminService(
+                userRepository,
+                eventRepository,
+                registrationRepository,
+                attendanceRepository,
+                clubRepository,
+                eventService);
     }
 
     private Event event(EventStatus status) {
@@ -169,6 +174,7 @@ class AdminServiceTest {
         when(userRepository.countByRole(Role.ORGANIZER)).thenReturn(45L);
         when(userRepository.countByRole(Role.ADMIN)).thenReturn(5L);
 
+        when(eventRepository.count()).thenReturn(128L);
         when(eventRepository.countByStatus(EventStatus.PENDING)).thenReturn(8L);
         when(eventRepository.countByStatus(EventStatus.APPROVED)).thenReturn(120L);
         when(eventRepository.countByStatus(EventStatus.DRAFT)).thenReturn(0L);
@@ -214,7 +220,7 @@ class AdminServiceTest {
 
         List<ClubResponse> clubs = adminService.listClubs();
 
-        assertThat(clubs).extracting(ClubResponse::name)
+        assertThat(clubs).extracting((ClubResponse club) -> club.name())
                 .containsExactly("Computer Science Club", "Robotics Club");
     }
 }

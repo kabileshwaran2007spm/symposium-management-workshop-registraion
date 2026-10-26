@@ -60,7 +60,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public authentication endpoints.
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password").permitAll()
 
                         // Public discovery. "/api/events/*" matches exactly one
                         // path segment, so the organizer/admin sub-resources such
@@ -128,7 +132,8 @@ public class SecurityConfig {
 
     /**
      * CORS is restricted to the configured frontend origins. Wildcards are not
-     * used, and credentials are allowed because the SPA sends a bearer token.
+     * used. The SPA sends bearer tokens explicitly, so browser-managed credentials
+     * (cookies or HTTP authentication) are not needed.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
@@ -145,14 +150,17 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of(
-                HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
-                HttpMethod.PATCH.name(), HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name()));
+                HttpMethod.GET.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.PATCH.name(),
+                HttpMethod.DELETE.name(),
+                HttpMethod.OPTIONS.name()));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT,
                 HttpHeaders.ORIGIN, "X-Requested-With"));
         // Lets the browser read the download filename for CSV exports.
         configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_DISPOSITION));
-        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

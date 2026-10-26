@@ -1,5 +1,7 @@
 package com.campusconnect.config;
 
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
@@ -15,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import com.campusconnect.model.Attendance;
 import com.campusconnect.model.Club;
 import com.campusconnect.model.Event;
+import com.campusconnect.model.PasswordResetToken;
 import com.campusconnect.model.Registration;
 import com.campusconnect.model.RegistrationStatus;
 import com.campusconnect.model.User;
@@ -41,12 +44,20 @@ public class MongoIndexConfig {
     public ApplicationRunner ensureIndexes(MongoTemplate mongoTemplate) {
         return args -> {
             createUserIndexes(mongoTemplate.indexOps(User.class));
+            createPasswordResetTokenIndexes(mongoTemplate.indexOps(PasswordResetToken.class));
             createEventIndexes(mongoTemplate.indexOps(Event.class));
             createRegistrationIndexes(mongoTemplate.indexOps(Registration.class));
             createAttendanceIndexes(mongoTemplate.indexOps(Attendance.class));
             createClubIndexes(mongoTemplate.indexOps(Club.class));
             log.info("MongoDB indexes verified");
         };
+    }
+
+    private void createPasswordResetTokenIndexes(IndexOperations tokens) {
+        tokens.createIndex(new Index().on("tokenHash", Sort.Direction.ASC)
+                .unique().named("uniq_password_reset_token_hash"));
+        tokens.createIndex(new Index().on("expiresAt", Sort.Direction.ASC)
+                .expire(Duration.ZERO).named("ttl_password_reset_tokens"));
     }
 
     private void createUserIndexes(IndexOperations users) {

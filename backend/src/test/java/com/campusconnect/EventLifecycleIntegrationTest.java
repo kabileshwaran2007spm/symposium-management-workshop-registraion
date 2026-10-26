@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,9 +25,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.campusconnect.model.Event;
-import com.campusconnect.model.EventCategory;
-import com.campusconnect.model.EventStatus;
 import com.campusconnect.model.Role;
 import com.campusconnect.model.User;
 import com.campusconnect.repository.AttendanceRepository;
@@ -86,7 +82,7 @@ class EventLifecycleIntegrationTest {
     private String studentCToken;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         attendanceRepository.deleteAll();
         registrationRepository.deleteAll();
         eventRepository.deleteAll();

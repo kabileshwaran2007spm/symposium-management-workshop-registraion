@@ -42,13 +42,19 @@ public final class SecurityUtils {
         if (authentication == null || authentication.getAuthorities() == null) {
             return null;
         }
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .filter(authority -> authority.startsWith(ROLE_PREFIX))
-                .map(authority -> authority.substring(ROLE_PREFIX.length()))
-                .findFirst()
-                .map(SecurityUtils::parseRoleOrNull)
-                .orElse(null);
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if (authority == null) {
+                continue;
+            }
+            String value = authority.getAuthority();
+            if (value != null && value.startsWith(ROLE_PREFIX)) {
+                Role role = parseRoleOrNull(value.substring(ROLE_PREFIX.length()));
+                if (role != null) {
+                    return role;
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean isAdmin() {

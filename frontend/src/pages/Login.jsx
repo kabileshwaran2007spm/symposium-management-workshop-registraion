@@ -88,6 +88,10 @@ export default function Login() {
             error={errors.password}
           />
 
+          <p className="auth-footer" style={{ marginTop: 0, marginBottom: 'var(--space-4)', textAlign: 'right' }}>
+            <Link to="/forgot-password">Forgot password?</Link>
+          </p>
+
           <Button type="submit" block loading={submitting}>
             {submitting ? 'Logging in…' : 'Log in'}
           </Button>

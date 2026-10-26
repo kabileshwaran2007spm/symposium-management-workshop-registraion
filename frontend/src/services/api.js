@@ -104,7 +104,7 @@ function toAppError(error) {
   if (!response) {
     const message = error.code === 'ECONNABORTED'
       ? 'The server request timed out. Please try again.'
-      : 'Could not contact the API. Check your network connection and the backend CORS configuration.';
+      : 'Could not reach the API. Check your connection and try again.';
     const appError = new Error(message);
     appError.status = 0;
     appError.kind = 'network';

@@ -177,7 +177,7 @@ public class RegistrationService {
         }
 
         Map<String, Event> events = eventsById(registrations.stream()
-                .map(Registration::getEventId)
+                .map(registration -> registration.getEventId())
                 .distinct()
                 .toList());
 
@@ -206,7 +206,7 @@ public class RegistrationService {
     public Page<AttendeeResponse> attendees(
             String eventId, String requesterId, Role requesterRole, String search, Pageable pageable) {
 
-        Event event = requireOrganizerAccess(eventId, requesterId, requesterRole);
+        requireOrganizerAccess(eventId, requesterId, requesterRole);
 
         List<Registration> registrations = registrationRepository.findByEventIdOrderByRegisteredAtAsc(eventId);
         if (registrations.isEmpty()) {
@@ -214,12 +214,15 @@ public class RegistrationService {
         }
 
         Map<String, User> users = usersById(registrations.stream()
-                .map(Registration::getUserId)
+                .map(registration -> Objects.requireNonNull(registration).getUserId())
                 .distinct()
                 .toList());
 
         Map<String, Attendance> attendanceByRegistration = attendanceFor(eventId).stream()
-                .collect(Collectors.toMap(Attendance::getRegistrationId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(
+                        attendance -> Objects.requireNonNull(attendance).getRegistrationId(),
+                        Function.identity(),
+                        (a, b) -> a));
 
         String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
 
@@ -229,7 +232,7 @@ public class RegistrationService {
                         users.get(registration.getUserId()),
                         attendanceByRegistration.containsKey(registration.getId())))
                 .filter(row -> term.isEmpty() || matches(row, term))
-                .sorted(Comparator.comparing(AttendeeResponse::name,
+                .sorted(Comparator.comparing(row -> row.name(),
                         Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                 .toList();
 
@@ -265,7 +268,7 @@ public class RegistrationService {
         requireOrganizerAccess(eventId, requesterId, requesterRole);
 
         return exportAttendees(eventId).stream()
-                .map(AttendeeResponse::toExportRow)
+                .map(row -> Objects.requireNonNull(row).toExportRow())
                 .toList();
     }
 
@@ -316,12 +319,15 @@ public class RegistrationService {
         }
 
         Map<String, User> users = usersById(registrations.stream()
-                .map(Registration::getUserId)
+                .map(registration -> Objects.requireNonNull(registration).getUserId())
                 .distinct()
                 .toList());
 
         Map<String, Attendance> attendanceByRegistration = attendanceFor(eventId).stream()
-                .collect(Collectors.toMap(Attendance::getRegistrationId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(
+                        attendance -> Objects.requireNonNull(attendance).getRegistrationId(),
+                        Function.identity(),
+                        (a, b) -> a));
 
         return registrations.stream()
                 .map(registration -> AttendeeResponse.from(
@@ -355,12 +361,18 @@ public class RegistrationService {
 
     private Map<String, Event> eventsById(Collection<String> ids) {
         return eventRepository.findByIdIn(ids).stream()
-                .collect(Collectors.toMap(Event::getId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(
+                        event -> Objects.requireNonNull(event).getId(),
+                        Function.identity(),
+                        (a, b) -> a));
     }
 
     private Map<String, User> usersById(Collection<String> ids) {
         return userRepository.findByIdIn(ids).stream()
-                .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a));
+                .collect(Collectors.toMap(
+                        user -> Objects.requireNonNull(user).getId(),
+                        Function.identity(),
+                        (a, b) -> a));
     }
 
     /**

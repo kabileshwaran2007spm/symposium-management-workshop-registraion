@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Modernization tasks for the CampusConnect Azure modernization plan.",
+  "tasks": [
+    {
+      "type": "setupBaseline",
+      "id": "001-setupBaseline",
+      "description": "Capture the current backend behavior and test specification before migration.",
+      "reason": "A frozen baseline is required to verify the migrated database and endpoint behavior.",
+      "requirements": "Snapshot the backend source and capture the baseline test specification and dependency test strategy. Use mock mode for dependencies that are not provisioned.",
+      "snapshotFolder": "backend/src",
+      "dependencies": []
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-mongodb-documentdb",
+      "description": "Move database connectivity from local MongoDB to Azure DocumentDB with MongoDB compatibility.",
+      "reason": "The assessment found MongoDB connection configuration and local-resource usage that must be addressed for Azure deployment.",
+      "requirements": "Addresses assessment issue: MongoDB connection found in configuration file; Localhost Usage. Connect the application to Azure DocumentDB (with MongoDB compatibility) using Microsoft Entra ID authentication. Ensure the Azure deployment does not rely on localhost database defaults, while retaining an appropriate local-development configuration.",
+      "skills": [
+        {
+          "name": "migration-mi-mongodb",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": []
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-secure-endpoints",
+      "description": "Separate local-only URLs from production endpoints and secure production network communication.",
+      "reason": "The assessment found hardcoded HTTP URLs, local HTTP calls, localhost usage, and unsecured network protocol configuration.",
+      "requirements": "Addresses assessment issues: Avoid using hardcoded URLs (HTTP protocol) in source code; Local HTTP Calls; Localhost Usage; Use of unsecured network protocols or URI libraries. Make production service endpoints configurable and use secure protocols for non-local communication. Keep intentional loopback URLs confined to local development or test configuration, without disrupting those workflows.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": [
+        "002-transform-mongodb-documentdb"
+      ]
+    },
+    {
+      "type": "security",
+      "id": "004-security-cve-remediation",
+      "description": "Scan project dependencies for known CVEs and remediate identified vulnerabilities.",
+      "reason": "Security and CVE remediation is a required quality gate for modernization plans.",
+      "requirements": "Run a dependency vulnerability scan after the database and endpoint transformations. Upgrade vulnerable dependencies to the minimum patched version. If a fix requires a major version upgrade, document the dependency, current and target versions, and breaking-change risk. Verify the project builds and all tests pass.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      },
+      "dependencies": [
+        "003-transform-secure-endpoints"
+      ]
+    },
+    {
+      "type": "integrationTest",
+      "id": "005-integrationTest",
+      "description": "Build integration tests for migrated Azure services and run post-migration verification",
+      "reason": "Verify that the migrated database configuration and endpoint behavior preserve the captured application behavior.",
+      "requirements": "Run post-migration verification in mock mode. Cover the backend behaviors affected by the MongoDB and endpoint changes and compare results with the frozen baseline.",
+      "dependencies": [
+        "001-setupBaseline",
+        "002-transform-mongodb-documentdb",
+        "003-transform-secure-endpoints"
+      ]
+    },
+    {
+      "type": "deployment",
+      "id": "006-deployment-azure-container-apps",
+      "description": "Containerize and deploy CampusConnect to Azure Container Apps.",
+      "reason": "The assessment recommends deploying the Spring application to Azure, and Azure Container Apps is the selected default target.",
+      "requirements": "Addresses assessment issue: Server port configuration found. Ensure the application honors the platform-provided port and deploy it to an existing or externally provided Azure Container Apps environment. Do not provision new Azure infrastructure or include resource IDs, subscription IDs, or connection strings in this plan. Provide the target environment details at execution time.",
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "Use an existing or externally provided environment; no new infrastructure provisioning is in scope.",
+      "deploymentTool": "bicep",
+      "skills": [
+        {
+          "name": "azcli-containerapp-deploy",
+          "location": "builtin"
+        }
+      ],
+      "dependencies": [
+        "004-security-cve-remediation",
+        "005-integrationTest"
+      ]
+    }
+  ],
+  "metadata": {
+    "planName": "azure-modernization-report-20261026154959",
+    "projectName": "CampusConnect",
+    "language": "Java",
+    "createdAt": "2026-10-26T15:58:30+05:30",
+    "version": "1.0"
+  }
+}
