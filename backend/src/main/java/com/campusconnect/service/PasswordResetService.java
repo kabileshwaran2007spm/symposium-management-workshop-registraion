@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.campusconnect.exception.ApiException;
-import com.campusconnect.exception.BusinessRuleException;
 import com.campusconnect.model.PasswordResetToken;
 import com.campusconnect.model.User;
 import com.campusconnect.repository.UserRepository;
