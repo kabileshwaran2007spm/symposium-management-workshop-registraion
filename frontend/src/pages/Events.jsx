@@ -53,9 +53,9 @@ export default function Events() {
   return (
     <>
       <div className="page-header">
-        <h1>Events</h1>
+        <h1>Discover events</h1>
         <p className="page-subtitle">
-          Browse upcoming symposiums, workshops, seminars and hackathons.
+          Search and explore upcoming symposiums, workshops, seminars and hackathons.
         </p>
       </div>
 

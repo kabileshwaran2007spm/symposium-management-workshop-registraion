@@ -77,8 +77,8 @@ export default function MyRegistrations() {
   return (
     <>
       <div className="page-header">
-        <h1>My registrations</h1>
-        <p className="page-subtitle">Every event you have registered for, with its QR pass.</p>
+        <h1>My activity</h1>
+        <p className="page-subtitle">Track upcoming, completed, and cancelled event registrations and QR passes.</p>
       </div>
 
       <div className="tabs" role="tablist" aria-label="Registration filters">

@@ -53,9 +53,13 @@ export default function Profile() {
 
       {user.role === 'STUDENT' && (
         <p>
-          <Link to="/my-registrations">View my registrations →</Link>
+          <Link to="/my-activity">View my activity →</Link>
         </p>
       )}
+
+      <p>
+        <Link to="/settings">Account settings →</Link>
+      </p>
 
       <div style={{ marginTop: 'var(--space-5)' }}>
         <button type="button" className="btn btn-secondary" onClick={logout}>

@@ -10,6 +10,7 @@ import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import Events from '../pages/Events';
 import EventDetails from '../pages/EventDetails';
+import Settings from '../pages/Settings';
 import StudentDashboard from '../pages/StudentDashboard';
 import MyRegistrations from '../pages/MyRegistrations';
 import QrPass from '../pages/QrPass';
@@ -50,12 +51,14 @@ export default function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/events" element={<Events />} />
+      <Route path="/discover" element={<Events />} />
       <Route path="/events/:id" element={<EventDetails />} />
 
       {/* Any signed-in user */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 
@@ -64,6 +67,7 @@ export default function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<StudentDashboard />} />
           <Route path="/my-registrations" element={<MyRegistrations />} />
+          <Route path="/my-activity" element={<MyRegistrations />} />
           <Route path="/my-registrations/:registrationId/pass" element={<QrPass />} />
         </Route>
       </Route>

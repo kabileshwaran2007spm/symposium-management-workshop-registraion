@@ -16,14 +16,18 @@ const SECTIONS_BY_ROLE = {
       heading: 'Discover',
       items: [
         { to: '/dashboard', label: 'Dashboard' },
-        { to: '/events', label: 'Browse events' },
+        { to: '/discover', label: 'Discover events' },
       ],
     },
     {
       heading: 'My activity',
+      items: [{ to: '/my-activity', label: 'My activity' }],
+    },
+    {
+      heading: 'Account',
       items: [
-        { to: '/my-registrations', label: 'My registrations' },
         { to: '/profile', label: 'Profile' },
+        { to: '/settings', label: 'Settings' },
       ],
     },
   ],
@@ -37,11 +41,14 @@ const SECTIONS_BY_ROLE = {
     },
     {
       heading: 'Discover',
-      items: [{ to: '/events', label: 'Browse events' }],
+      items: [{ to: '/discover', label: 'Discover events' }],
     },
     {
       heading: 'Account',
-      items: [{ to: '/profile', label: 'Profile' }],
+      items: [
+        { to: '/profile', label: 'Profile' },
+        { to: '/settings', label: 'Settings' },
+      ],
     },
   ],
   ADMIN: [
@@ -63,6 +70,13 @@ const SECTIONS_BY_ROLE = {
     {
       heading: 'Insight',
       items: [{ to: '/admin/analytics', label: 'Analytics' }],
+    },
+    {
+      heading: 'Account',
+      items: [
+        { to: '/profile', label: 'Profile' },
+        { to: '/settings', label: 'Settings' },
+      ],
     },
   ],
 };

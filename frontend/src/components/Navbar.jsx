@@ -8,14 +8,16 @@ import { roleLabel } from '../utils/format';
 const LINKS_BY_ROLE = {
   STUDENT: [
     { to: '/dashboard', label: 'Dashboard' },
-    { to: '/events', label: 'Events' },
-    { to: '/my-registrations', label: 'My Registrations' },
+    { to: '/discover', label: 'Discover' },
+    { to: '/my-activity', label: 'My activity' },
     { to: '/profile', label: 'Profile' },
+    { to: '/settings', label: 'Settings' },
   ],
   ORGANIZER: [
     { to: '/organizer', label: 'Dashboard' },
-    { to: '/events', label: 'Events' },
+    { to: '/discover', label: 'Discover' },
     { to: '/profile', label: 'Profile' },
+    { to: '/settings', label: 'Settings' },
   ],
   ADMIN: [
     { to: '/admin', label: 'Dashboard' },
@@ -24,6 +26,7 @@ const LINKS_BY_ROLE = {
     { to: '/admin/clubs', label: 'Clubs' },
     { to: '/admin/analytics', label: 'Analytics' },
     { to: '/profile', label: 'Profile' },
+    { to: '/settings', label: 'Settings' },
   ],
 };
 
@@ -31,7 +34,7 @@ export default function Navbar() {
   const { user, isAuthenticated, role, logout } = useAuth();
   const navigate = useNavigate();
 
-  const links = isAuthenticated ? LINKS_BY_ROLE[role] || [] : [{ to: '/events', label: 'Events' }];
+  const links = isAuthenticated ? LINKS_BY_ROLE[role] || [] : [{ to: '/discover', label: 'Discover' }];
 
   const handleLogout = async () => {
     await logout();

@@ -11,14 +11,14 @@ import { useAuth } from '../context/useAuth';
 const ITEMS_BY_ROLE = {
   STUDENT: [
     { to: '/dashboard', label: 'Home', icon: '🏠' },
-    { to: '/events', label: 'Events', icon: '🔍' },
-    { to: '/my-registrations', label: 'Tickets', icon: '🎫' },
+    { to: '/discover', label: 'Discover', icon: '🔍' },
+    { to: '/my-activity', label: 'My activity', icon: '🎫' },
     { to: '/profile', label: 'Profile', icon: '👤' },
   ],
   ORGANIZER: [
     { to: '/organizer', label: 'Home', icon: '🏠' },
     { to: '/organizer/events/new', label: 'Create', icon: '➕' },
-    { to: '/events', label: 'Events', icon: '🔍' },
+    { to: '/discover', label: 'Discover', icon: '🔍' },
     { to: '/profile', label: 'Profile', icon: '👤' },
   ],
   ADMIN: [
@@ -34,7 +34,7 @@ export default function BottomNav() {
 
   const items = isAuthenticated
     ? ITEMS_BY_ROLE[role] || ITEMS_BY_ROLE.STUDENT
-    : [{ to: '/events', label: 'Events', icon: '🔍' }];
+    : [{ to: '/discover', label: 'Discover', icon: '🔍' }];
 
   return (
     <nav className="bottom-nav" aria-label="Mobile navigation">
