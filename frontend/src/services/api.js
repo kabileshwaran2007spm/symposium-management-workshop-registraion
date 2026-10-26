@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { readApiEnvelope } from './apiResponse';
+
 /**
  * The single Axios instance every service uses.
  *
@@ -166,12 +168,8 @@ export async function request(config) {
     return null;
   }
 
-  const isApiEnvelope = body !== null
-    && typeof body === 'object'
-    && typeof body.success === 'boolean'
-    && Object.prototype.hasOwnProperty.call(body, 'data')
-    && typeof body.message === 'string';
-  if (!isApiEnvelope || !body.success) {
+  const envelope = readApiEnvelope(body);
+  if (!envelope || !envelope.success) {
     if (import.meta.env.DEV) {
       console.error('CampusConnect API returned an invalid response format', {
         method: config.method?.toUpperCase(),
@@ -181,8 +179,8 @@ export async function request(config) {
       });
     }
     const appError = new Error(
-      isApiEnvelope && body.message
-        ? body.message
+      envelope?.message
+        ? envelope.message
         : 'The server returned an unexpected response. Please try again later.',
     );
     appError.status = response.status;
@@ -190,7 +188,7 @@ export async function request(config) {
     throw appError;
   }
 
-  return body.data;
+  return envelope.data;
 }
 
 export const api = {
