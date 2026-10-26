@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Execution tasks for narrowly verified CampusConnect reliability gaps. Preserve the existing stack and all pre-existing user changes.",
+  "tasks": [
+    {
+      "type": "transform",
+      "id": "001-verify-bearer-cors-and-api-diagnostics",
+      "description": "Verify and finish the bearer-token CORS and API connectivity diagnostic correction. Reconcile only relevant assessment findings (localhost-http-00001, hardcoded-urls-00001, and unsecure-network-protocol-00000) against the supplied live checks; retain intentional development/test settings.",
+      "reason": "The actual Render API and Vercel-origin CORS checks pass, but browser-managed credentialed CORS is unnecessary for bearer-token auth and the frontend previously attributed generic network failures to CORS.",
+      "requirements": "Inspect the pre-existing diff first and preserve all user work. Keep the existing React/Vite + Spring Boot/MongoDB stack and the known-good VITE_API_BASE_URL. Confirm credentialed CORS is not enabled for bearer-token-only requests, configured origins and requested methods/headers remain least-privilege, and untrusted origins stay rejected. Keep the frontend network error message cause-neutral. The focused changes are already present and tested, so do not duplicate them; edit only if review identifies a remaining, demonstrable gap. Do not broaden CORS, change production URLs, inspect credentials, deploy, or touch production data. Run the focused frontend lint/build and backend CORS test and report actual results.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-classify-password-reset-status-regression",
+      "description": "Classify and, only if justified, resolve the password-reset integration-test status mismatch.",
+      "reason": "The prior backend suite had 108 tests with one failure: an invalid reset token currently produces HTTP 409 through business-rule handling while the test expects HTTP 400. The intended contract must decide whether this is a valid conflict response or a regression.",
+      "requirements": "Preserve the existing uncommitted password-reset implementation and unrelated changes. Trace the reset endpoint, request validation, BusinessRuleException/status mapping, and existing API semantics to determine whether an invalid/expired reset token should be a 400 validation/client error or a 409 business conflict. Do not change production behavior or weaken the test merely to obtain a green suite. If the implementation matches the established contract, update only the incorrect assertion and explain the evidence; if it violates the contract, make the smallest targeted correction and add/update a focused assertion. Before running integration tests that write/delete records, verify the test profile uses an isolated, non-production database without inspecting credentials; otherwise skip the data-writing test and report the blocker. Run focused reset-service/API tests and the backend suite only when safe, reporting all outcomes.",
+      "dependencies": [
+        "001-verify-bearer-cors-and-api-diagnostics"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "campusconnect-targeted-gaps",
+    "projectName": "CampusConnect",
+    "language": "java",
+    "createdAt": "2026-10-26T10:29:54.829Z",
+    "version": "1.0"
+  }
+}
